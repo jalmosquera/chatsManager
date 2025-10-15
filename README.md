@@ -1,258 +1,260 @@
-# 📚 Cheatsheet Management System
+# 📚 Sistema de Gestión de Cheatsheets
 
-A complete and elegant system for creating, managing, and consulting quick reference sheets (cheatsheets) directly from your terminal.
+Un sistema completo y elegante para crear, gestionar y consultar hojas de referencia rápida (cheatsheets) directamente desde tu terminal.
 
-## 📑 Table of Contents
+> 🌐 **[English version / Versión en inglés](README_EN.md)**
 
-- [Features](#-features)
-- [Requirements](#-requirements)
-- [Installation](#-installation)
-- [Usage](#-usage)
-  - [View a Cheatsheet](#view-a-cheatsheet)
-  - [Create New Cheatsheet](#create-new-cheatsheet)
-  - [Add Commands](#add-commands)
-  - [Edit Commands](#edit-commands)
-  - [Delete Commands](#delete-commands)
-  - [Add Live Aliases](#add-live-aliases)
-  - [Help](#help)
-- [Project Structure](#-project-structure)
-- [Advanced Features](#-advanced-features)
-- [Usage Examples](#-usage-examples)
+## 📑 Índice
 
-## ✨ Features
+- [Características](#-características)
+- [Requisitos](#-requisitos)
+- [Instalación](#-instalación)
+- [Uso](#-uso)
+  - [Ver un Cheatsheet](#ver-un-cheatsheet)
+  - [Crear Nuevo Cheatsheet](#crear-nuevo-cheatsheet)
+  - [Agregar Comandos](#agregar-comandos)
+  - [Editar Comandos](#editar-comandos)
+  - [Eliminar Comandos](#eliminar-comandos)
+  - [Agregar Aliases Vivos](#agregar-aliases-vivos)
+  - [Ayuda](#ayuda)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Características Avanzadas](#-características-avanzadas)
+- [Ejemplos de Uso](#-ejemplos-de-uso)
 
-- 🎯 **Intuitive Management**: Simple and consistent command system with `cs` prefix
-- 📝 **Markdown Format**: Cheatsheets in Markdown format with elegant visualization using `glow`
-- 🔄 **Live Aliases**: Create aliases that work both as documentation and real shell commands
-- 📁 **Category Organization**: Interactive category selection when adding commands
-- ⌨️ **Automatic Shortcut Detection**: Automatically formats keyboard combinations (Ctrl+C, Cmd+Shift+N, etc.)
-- 🎨 **Smart Emojis**: Automatic emoji assignment based on command type
-- 🔍 **Easy Search**: Lists all available cheatsheets and allows quick search
-- 🔧 **Automatic Synchronization**: Aliases automatically sync with Fish shell
+## ✨ Características
 
-## 🔧 Requirements
+- 🎯 **Gestión Intuitiva**: Sistema de comandos simple y coherente con prefijo `cs`
+- 📝 **Formato Markdown**: Cheatsheets en formato Markdown con visualización elegante usando `glow`
+- 🔄 **Aliases Vivos**: Crea aliases que funcionan tanto como documentación como comandos reales en tu shell
+- 📁 **Organización por Categorías**: Selección interactiva de categorías al agregar comandos
+- ⌨️ **Detección Automática de Atajos**: Formatea automáticamente combinaciones de teclas (Ctrl+C, Cmd+Shift+N, etc.)
+- 🎨 **Emojis Inteligentes**: Asignación automática de emojis según el tipo de comando
+- 🔍 **Búsqueda Fácil**: Lista todos los cheatsheets disponibles y permite búsqueda rápida
+- 🔧 **Sincronización Automática**: Los aliases se sincronizan automáticamente con Fish shell
 
-- **Fish Shell**: The system is designed to work with Fish shell
-- **Python 3**: For management scripts
-- **glow**: For elegant Markdown visualization in terminal
+## 🔧 Requisitos
+
+- **Fish Shell**: El sistema está diseñado para funcionar con Fish shell
+- **Python 3**: Para los scripts de gestión
+- **glow**: Para visualización elegante de Markdown en terminal
   ```bash
   brew install glow
   ```
-- **tree** (optional): For directory visualization aliases
+- **tree** (opcional): Para los aliases de visualización de directorios
 
-## 📦 Installation
+## 📦 Instalación
 
-1. **Clone the repository**:
+1. **Clona el repositorio**:
    ```bash
    git clone https://github.com/jalmosquera/chatsManager.git ~/.cheatsheets
    ```
 
-2. **Make scripts executable**:
+2. **Haz ejecutables los scripts**:
    ```bash
    chmod +x ~/.cheatsheets/cs*
    chmod +x ~/.cheatsheets/*.py
    ```
 
-3. **Configure Fish shell**:
+3. **Configura Fish shell**:
 
-   Copy or merge the aliases file content with your Fish configuration:
+   Copia o fusiona el contenido del archivo de aliases con tu configuración de Fish:
    ```bash
-   # Create directory if it doesn't exist
+   # Si no existe el directorio, créalo
    mkdir -p ~/.config/fish/conf.d/
 
-   # Copy or merge aliases
+   # Copia o fusiona los aliases
    cp ~/.cheatsheets/fish_aliases_example.fish ~/.config/fish/conf.d/aliases.fish
    ```
 
-4. **Reload Fish**:
+4. **Recarga Fish**:
    ```bash
    exec fish
    ```
 
-5. **Verify installation**:
+5. **Verifica la instalación**:
    ```bash
    cs
    ```
 
-## 📖 Usage
+## 📖 Uso
 
-### View a Cheatsheet
+### Ver un Cheatsheet
 
-To view an existing cheatsheet:
-
-```bash
-cs <tool-name>
-```
-
-If you run `cs` without arguments, you'll see the main menu with all available commands and a list of existing cheatsheets.
-
-**Examples**:
-```bash
-cs git          # View git cheatsheet
-cs docker       # View docker cheatsheet
-cs nvim         # View nvim cheatsheet
-```
-
-### Create New Cheatsheet
-
-Create a new cheatsheet from scratch:
+Para ver un cheatsheet existente:
 
 ```bash
-csnew <tool-name>
+cs <nombre-herramienta>
 ```
 
-The system will ask you to:
-1. Enter commands (format: `command - description`)
-2. Press Ctrl+D when finished
-3. It will automatically categorize and create the file
+Si ejecutas `cs` sin argumentos, verás el menú principal con todos los comandos disponibles y la lista de cheatsheets existentes.
 
-**Example**:
+**Ejemplos**:
+```bash
+cs git          # Ver cheatsheet de git
+cs docker       # Ver cheatsheet de docker
+cs nvim         # Ver cheatsheet de nvim
+```
+
+### Crear Nuevo Cheatsheet
+
+Crea un nuevo cheatsheet desde cero:
+
+```bash
+csnew <nombre-herramienta>
+```
+
+El sistema te pedirá:
+1. Ingresar los comandos (formato: `comando - descripción`)
+2. Presionar Ctrl+D cuando termines
+3. Automáticamente categorizará y creará el archivo
+
+**Ejemplo**:
 ```bash
 csnew kubectl
-# Then enter:
-kubectl get pods - List all pods
-kubectl describe pod <name> - Show pod details
-kubectl logs <pod> - Show pod logs
-# Press Ctrl+D
+# Luego ingresa:
+kubectl get pods - Lista todos los pods
+kubectl describe pod <nombre> - Muestra detalles de un pod
+kubectl logs <pod> - Muestra logs de un pod
+# Presiona Ctrl+D
 ```
 
-### Add Commands
+### Agregar Comandos
 
-Add commands to an existing cheatsheet:
+Agrega comandos a un cheatsheet existente:
 
 ```bash
-csadd <tool-name>
+csadd <nombre-herramienta>
 ```
 
-**Interactive flow**:
-1. Enter commands (format: `command - description`)
-2. Press Ctrl+D when finished
-3. Select category for each command:
-   - Choose an existing category (by number)
-   - Or create a new category (option 0)
+**Flujo interactivo**:
+1. Ingresa los comandos (formato: `comando - descripción`)
+2. Presiona Ctrl+D cuando termines
+3. Selecciona la categoría para cada comando:
+   - Elige una categoría existente (por número)
+   - O crea una nueva categoría (opción 0)
 
-**Example**:
+**Ejemplo**:
 ```bash
 csadd git
-# Enter:
-git stash - Save changes temporarily
-git stash pop - Restore saved changes
-# Press Ctrl+D
-# Then select category
+# Ingresa:
+git stash - Guarda cambios temporalmente
+git stash pop - Recupera cambios guardados
+# Presiona Ctrl+D
+# Luego selecciona la categoría
 ```
 
-### Edit Commands
+### Editar Comandos
 
-Edit existing commands in a cheatsheet:
+Edita comandos existentes en un cheatsheet:
 
 ```bash
-csedit <tool-name>
+csedit <nombre-herramienta>
 ```
 
-The system will display all numbered commands. Select the one you want to edit and modify the command and/or description.
+El sistema mostrará todos los comandos numerados. Selecciona el que quieres editar y modifica el comando y/o descripción.
 
-**Example**:
+**Ejemplo**:
 ```bash
 csedit docker
-# Select command number to edit
-# Modify command and description
-# Confirm changes
+# Selecciona el número del comando a editar
+# Modifica el comando y descripción
+# Confirma los cambios
 ```
 
-### Delete Commands
+### Eliminar Comandos
 
-Delete commands from a cheatsheet:
+Elimina comandos de un cheatsheet:
 
 ```bash
-csdel <tool-name>
+csdel <nombre-herramienta>
 ```
 
-Displays all commands and lets you select which ones to delete.
+Muestra todos los comandos y te permite seleccionar cuáles eliminar.
 
-### Add Live Aliases
+### Agregar Aliases Vivos
 
-**Live aliases** are aliases that work both as documentation in the cheatsheet and as real commands in your shell:
+Los **aliases vivos** son alias que funcionan tanto como documentación en el cheatsheet como comandos reales en tu shell:
 
-```bash
-csalias
-```
-
-**Input format**:
-```
-name='command' - description
-```
-
-**Example**:
 ```bash
 csalias
-# Enter:
-ll='ls -lah' - Detailed list with hidden files
-gst='git status' - Git status
-# Press Ctrl+D
 ```
 
-Aliases will be automatically added to:
-- ✅ The `aliases.md` cheatsheet (documentation)
-- ✅ Your Fish configuration (functionality)
+**Formato de entrada**:
+```
+nombre='comando' - descripción
+```
 
-### Help
+**Ejemplo**:
+```bash
+csalias
+# Ingresa:
+ll='ls -lah' - Lista detallada con archivos ocultos
+gst='git status' - Estado de git
+# Presiona Ctrl+D
+```
 
-View complete system help:
+Los aliases se agregarán automáticamente:
+- ✅ Al cheatsheet `aliases.md` (documentación)
+- ✅ A tu configuración de Fish (funcionalidad)
+
+### Ayuda
+
+Ver ayuda completa del sistema:
 
 ```bash
 cshelp
 ```
 
-## 📂 Project Structure
+## 📂 Estructura del Proyecto
 
 ```
 ~/.cheatsheets/
-├── README.md                    # English documentation
-├── README_ES.md                 # Spanish documentation
-├── cs                          # Main command: view cheatsheets
-├── csnew                       # Create new cheatsheet
-├── csadd                       # Add commands
-├── csedit                      # Edit commands
-├── csdel                       # Delete commands
-├── csalias                     # Add live aliases
-├── cshelp                      # View help
-├── create_cheatsheet.py        # Script to create cheatsheets
-├── add_to_cheat.py            # Script to add commands
-├── edit_cheat.py              # Script to edit commands
-├── delete_cheat.py            # Script to delete commands
-├── add_alias.py               # Script to add aliases
-├── sync_aliases.py            # Script to sync aliases with Fish
-└── *.md                       # Cheatsheet files
+├── README.md                    # Documentación en español (principal)
+├── README_EN.md                 # Documentación en inglés
+├── cs                          # Comando principal: ver cheatsheets
+├── csnew                       # Crear nuevo cheatsheet
+├── csadd                       # Agregar comandos
+├── csedit                      # Editar comandos
+├── csdel                       # Eliminar comandos
+├── csalias                     # Agregar aliases vivos
+├── cshelp                      # Ver ayuda
+├── create_cheatsheet.py        # Script para crear cheatsheets
+├── add_to_cheat.py            # Script para agregar comandos
+├── edit_cheat.py              # Script para editar comandos
+├── delete_cheat.py            # Script para eliminar comandos
+├── add_alias.py               # Script para agregar aliases
+├── sync_aliases.py            # Script para sincronizar aliases con Fish
+└── *.md                       # Archivos de cheatsheets
 ```
 
-## 🚀 Advanced Features
+## 🚀 Características Avanzadas
 
-### Interactive Categorization
+### Categorización Interactiva
 
-When adding commands with `csadd`, you can:
-- View all existing categories with command counts
-- Select an existing category by number
-- Create a new category on the fly
+Al agregar comandos con `csadd`, puedes:
+- Ver todas las categorías existentes con conteo de comandos
+- Seleccionar una categoría existente por número
+- Crear una nueva categoría sobre la marcha
 
-### Automatic Keyboard Shortcut Formatting
+### Formateo Automático de Atajos de Teclado
 
-The system automatically detects and formats keyboard combinations:
+El sistema detecta y formatea automáticamente combinaciones de teclas:
 
-**Input**:
+**Entrada**:
 ```
-ctrl c - Copy
-cmd shift n - New window
-```
-
-**Output**:
-```
-Ctrl + C - Copy
-Cmd + Shift + N - New window
+ctrl c - Copiar
+cmd shift n - Nueva ventana
 ```
 
-### Contextual Emojis
+**Salida**:
+```
+Ctrl + C - Copiar
+Cmd + Shift + N - Nueva ventana
+```
 
-Commands automatically receive emojis based on their function:
+### Emojis Contextuales
+
+Los comandos reciben emojis automáticamente según su función:
 - 📦 Install, add
 - ⚙️ Config, setup
 - 🆕 Create, new
@@ -261,117 +263,117 @@ Commands automatically receive emojis based on their function:
 - ▶️ Start, run
 - 🔨 Build
 - 🚀 Deploy
-- And many more...
+- Y muchos más...
 
-### Alias Synchronization
+### Sincronización de Aliases
 
-When you edit the aliases cheatsheet with `csedit aliases` or `csadd aliases`, the system:
-1. Detects that you're modifying aliases
-2. Automatically runs the synchronization script
-3. Updates your Fish configuration
-4. Informs you of the changes
+Cuando editas el cheatsheet de aliases con `csedit aliases` o `csadd aliases`, el sistema:
+1. Detecta que estás modificando aliases
+2. Ejecuta automáticamente el script de sincronización
+3. Actualiza tu configuración de Fish
+4. Te informa de los cambios
 
-### Elegant Visualization
+### Visualización Elegante
 
-All cheatsheets are visualized with `glow`, which provides:
-- Syntax highlighting
-- Rendered Markdown format
-- Colored code blocks
-- Easy navigation
+Todos los cheatsheets se visualizan con `glow`, que proporciona:
+- Sintaxis resaltada
+- Formato Markdown renderizado
+- Código con colores
+- Navegación fácil
 
-## 💡 Usage Examples
+## 💡 Ejemplos de Uso
 
-### Example 1: Create Docker Cheatsheet
+### Ejemplo 1: Crear Cheatsheet de Docker
 
 ```bash
-# Create the cheatsheet
+# Crear el cheatsheet
 csnew docker
 
-# Enter commands
-docker ps - List running containers
-docker images - List available images
-docker run <image> - Run a container
-docker stop <id> - Stop a container
-docker rm <id> - Remove a container
-# Press Ctrl+D
+# Ingresar comandos
+docker ps - Lista contenedores en ejecución
+docker images - Lista imágenes disponibles
+docker run <imagen> - Ejecuta un contenedor
+docker stop <id> - Detiene un contenedor
+docker rm <id> - Elimina un contenedor
+# Presiona Ctrl+D
 
-# View the result
+# Ver el resultado
 cs docker
 ```
 
-### Example 2: Add More Commands to Git
+### Ejemplo 2: Agregar Más Comandos a Git
 
 ```bash
-# Add commands
+# Agregar comandos
 csadd git
 
-# Enter new commands
-git cherry-pick <commit> - Apply a specific commit
-git rebase -i HEAD~3 - Interactive rebase last 3 commits
-# Press Ctrl+D
+# Ingresar nuevos comandos
+git cherry-pick <commit> - Aplica un commit específico
+git rebase -i HEAD~3 - Rebase interactivo últimos 3 commits
+# Presiona Ctrl+D
 
-# Select category
-# 1. Basic Commands (15 commands)
-# 2. Branching (8 commands)
-# 3. Advanced Commands (5 commands)
-# 0. [Create new category]
-# Which category? (1-3, 0 for new): 3
+# Seleccionar categoría
+# 1. Comandos Básicos (15 comandos)
+# 2. Branching (8 comandos)
+# 3. Comandos Avanzados (5 comandos)
+# 0. [Crear nueva categoría]
+# ¿En qué categoría agregarlo? (1-3, 0 para nueva): 3
 ```
 
-### Example 3: Add Custom Aliases
+### Ejemplo 3: Agregar Aliases Personalizados
 
 ```bash
-# Add aliases that work immediately
+# Agregar aliases que funcionan inmediatamente
 csalias
 
-# Enter aliases
-gco='git checkout' - Switch branch
-gpl='git pull' - Update branch
-gps='git push' - Push changes
-dc='docker-compose' - Docker compose shortcut
-# Press Ctrl+D
+# Ingresar aliases
+gco='git checkout' - Cambiar de rama
+gpl='git pull' - Actualizar rama
+gps='git push' - Subir cambios
+dc='docker-compose' - Docker compose corto
+# Presiona Ctrl+D
 
-# Aliases work right away:
-gco main          # Switch to main branch
-dc up -d          # Run docker-compose up -d
+# Los aliases ya funcionan:
+gco main          # Cambia a rama main
+dc up -d          # Ejecuta docker-compose up -d
 ```
 
-### Example 4: Edit an Existing Command
+### Ejemplo 4: Editar un Comando Existente
 
 ```bash
-# Edit cheatsheet
+# Editar cheatsheet
 csedit nvim
 
-# View numbered command list
-# 1. :w - Save file
-# 2. :q - Quit
-# 3. :wq - Save and quit
+# Ver lista numerada de comandos
+# 1. :w - Guardar archivo
+# 2. :q - Salir
+# 3. :wq - Guardar y salir
 # ...
 
-# Select command: 1
+# Seleccionar comando: 1
 
-# Edit:
-# New command [:w]: :w!
-# New description [Save file]: Force save file
-# Confirm changes? (y/n): y
+# Editar:
+# Nuevo comando [:w]: :w!
+# Nueva descripción [Guardar archivo]: Guardar archivo forzadamente
+# ¿Confirmar cambios? (y/n): y
 ```
 
-## 🎯 Tips and Tricks
+## 🎯 Consejos y Trucos
 
-1. **Use clear descriptions**: Descriptions help remember what each command does
-2. **Organize by categories**: Use logical categories to facilitate searching
-3. **Short aliases**: For live aliases, use short and memorable names
-4. **Update regularly**: Add new commands as you learn them
-5. **Sync your configuration**: Keep the `.cheatsheets` directory in a repo to use across multiple machines
+1. **Usa descripciones claras**: Las descripciones ayudan a recordar para qué sirve cada comando
+2. **Organiza por categorías**: Usa categorías lógicas para facilitar la búsqueda
+3. **Aliases cortos**: Para aliases vivos, usa nombres cortos y memorables
+4. **Actualiza regularmente**: Agrega comandos nuevos cuando los aprendas
+5. **Sincroniza tu configuración**: Guarda el directorio `.cheatsheets` en un repo para usar en múltiples máquinas
 
-## 🤝 Contributing
+## 🤝 Contribuciones
 
-This project is designed for personal use, but feel free to fork and adapt it to your needs.
+Este proyecto está diseñado para uso personal, pero siéntete libre de hacer fork y adaptarlo a tus necesidades.
 
-## 📄 License
+## 📄 Licencia
 
-MIT License - Feel free to use and modify according to your needs.
+MIT License - Siéntete libre de usar y modificar según tus necesidades.
 
 ---
 
-*Created to keep your commands organized and accessible from any terminal* 🚀
+*Creado para mantener tus comandos organizados y accesibles desde cualquier terminal* 🚀
