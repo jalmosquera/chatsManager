@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Wrapper script for add_to_cheat.py
+# Usage: csadd <tool_name>
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="$SCRIPT_DIR/add_to_cheat.py"
+
+if [ $# -eq 0 ]; then
+    echo "➕ Agregar comandos a cheatsheet existente"
+    echo ""
+    echo "Uso: csadd <nombre_herramienta>"
+    echo ""
+    echo "Ejemplos:"
+    echo "  csadd git"
+    echo "  csadd docker"
+    echo "  csadd kubectl"
+    echo ""
+    echo "Flujo interactivo:"
+    echo "  1. Ingresa los comandos (formato: 'comando - descripción')"
+    echo "  2. Presiona Ctrl+D cuando termines"
+    echo "  3. Selecciona la categoría para cada comando"
+    echo "     • Elige una categoría existente (por número)"
+    echo "     • O crea una nueva categoría (opción 0)"
+    echo ""
+    echo "📚 Cheatsheets disponibles:"
+    ls -1 "$SCRIPT_DIR"/*.md 2>/dev/null | sed 's|.*/||' | sed 's/\.md$//' | sed 's/^/  - /' | head -10
+    exit 1
+fi
+
+python3 "$PYTHON_SCRIPT" "$@"

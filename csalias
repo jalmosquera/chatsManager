@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Wrapper script for add_alias.py
+# Usage: csalias
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="$SCRIPT_DIR/add_alias.py"
+
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    echo "🔧 Agregar Alias Vivo"
+    echo ""
+    echo "Uso: csalias"
+    echo ""
+    echo "Este comando agrega aliases que funcionan inmediatamente:"
+    echo "  1. Se agregan al cheatsheet de aliases"
+    echo "  2. Se agregan a tu configuración de fish"
+    echo ""
+    echo "Formato de entrada:"
+    echo "  nombre='comando' - descripción"
+    echo ""
+    echo "Ejemplos:"
+    echo "  ll='ls -la' - Listar todo con detalles"
+    echo "  ..='cd ..' - Subir un directorio"
+    echo "  gs='git status' - Ver estado de git"
+    echo ""
+    echo "Después de ejecutar el comando, ingresa los aliases y presiona Ctrl+D"
+    exit 0
+fi
+
+python3 "$PYTHON_SCRIPT"

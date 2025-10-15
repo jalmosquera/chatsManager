@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Wrapper script for edit_cheat.py
+# Usage: csedit <tool_name>
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="$SCRIPT_DIR/edit_cheat.py"
+
+if [ $# -eq 0 ]; then
+    echo "✏️  Editar comandos en cheatsheet existente"
+    echo ""
+    echo "Uso: csedit <nombre_herramienta>"
+    echo ""
+    echo "Ejemplos:"
+    echo "  csedit git"
+    echo "  csedit docker"
+    echo "  csedit kubectl"
+    echo ""
+    echo "El script te mostrará todos los comandos disponibles"
+    echo "y podrás seleccionar cuál editar interactivamente."
+    echo ""
+    echo "📚 Cheatsheets disponibles:"
+    ls -1 "$SCRIPT_DIR"/*.md 2>/dev/null | sed 's|.*/||' | sed 's/\.md$//' | sed 's/^/  - /' | head -10
+    exit 1
+fi
+
+python3 "$PYTHON_SCRIPT" "$@"
