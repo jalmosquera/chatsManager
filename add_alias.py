@@ -91,40 +91,61 @@ def format_for_cheatsheet(aliases):
             lines.append(f"{alias['name']} - {alias['command']}")
     return '\n'.join(lines)
 
+def add_aliases_interactively():
+    """Agrega aliases de forma interactiva pregunta por pregunta"""
+    aliases = []
+
+    print("\n🔧 Agregar Alias Vivo")
+    print("=" * 50)
+
+    while True:
+        print("\n" + "─" * 50)
+
+        # Preguntar por el nombre del alias
+        alias_name = input("\n📛 Dime el alias: ").strip()
+        if not alias_name:
+            print("❌ El nombre del alias no puede estar vacío")
+            continue
+
+        # Preguntar por el comando
+        command = input("💻 Dime el comando: ").strip()
+        if not command:
+            print("❌ El comando no puede estar vacío")
+            continue
+
+        # Preguntar por la descripción
+        description = input("📝 Dime la descripción: ").strip()
+
+        # Crear info del alias
+        alias_info = {
+            'name': alias_name,
+            'command': command,
+            'description': description
+        }
+
+        aliases.append(alias_info)
+
+        desc_text = f" - {description}" if description else ""
+        print(f"\n✅ Alias agregado: {alias_name}='{command}'{desc_text}")
+
+        # Preguntar si quiere agregar más
+        add_more = input("\n➕ ¿Agregar otro alias? (s/n): ").strip().lower()
+        if add_more not in ['s', 'si', 'sí', 'y', 'yes']:
+            break
+
+    return aliases
+
 def main():
     cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
     fish_config_path = os.path.expanduser("~/.config/fish/conf.d/aliases.fish")
 
-    print("🔧 Agregar Alias Vivo")
-    print("Formato: nombre='comando' - descripción")
-    print("Ejemplo: ll='ls -la' - Listar todo con detalles")
-    print("\nIngresa los aliases (Ctrl+D para finalizar):\n")
-
     try:
-        # Leer entrada del usuario
-        input_text = sys.stdin.read()
-
-        if not input_text.strip():
-            print("❌ No se ingresaron aliases")
-            sys.exit(1)
-
-        # Parsear aliases
-        aliases = parse_alias_input(input_text)
+        # Agregar aliases de forma interactiva
+        aliases = add_aliases_interactively()
 
         if not aliases:
-            print("❌ No se pudieron parsear los aliases")
+            print("❌ No se agregaron aliases")
             sys.exit(1)
-
-        print(f"\n📝 Se encontraron {len(aliases)} alias(es):")
-        for alias in aliases:
-            desc_text = f" - {alias['description']}" if alias['description'] else ""
-            print(f"  • {alias['name']}='{alias['command']}'{desc_text}")
-
-        # Confirmar
-        confirm = input("\n¿Agregar estos aliases? (y/n): ").strip().lower()
-        if confirm != 'y':
-            print("❌ Operación cancelada")
-            sys.exit(0)
 
         # 1. Agregar al archivo de fish
         print("\n📄 Agregando a fish config...")
@@ -134,28 +155,64 @@ def main():
             print("❌ Error al agregar aliases a fish config")
             sys.exit(1)
 
-        # 2. Agregar al cheatsheet usando add_to_cheat.py
+        # 2. Agregar al cheatsheet de aliases
         print("\n📚 Agregando al cheatsheet...")
-        formatted_input = format_for_cheatsheet(aliases)
+        aliases_md_path = os.path.join(cheatsheets_dir, "aliases.md")
 
-        # Crear archivo temporal con el input formateado
-        temp_file = "/tmp/aliases_input.txt"
-        with open(temp_file, 'w') as f:
-            f.write(formatted_input)
+        # Si no existe el archivo, crearlo
+        if not os.path.exists(aliases_md_path):
+            with open(aliases_md_path, 'w', encoding='utf-8') as f:
+                f.write("# Aliases\n\n")
+                f.write(f"---\n*Creado: {datetime.now().strftime('%Y-%m-%d')}*\n")
 
-        # Llamar a add_to_cheat.py
-        result = os.system(f'python3 "{cheatsheets_dir}/add_to_cheat.py" aliases < {temp_file}')
+        # Leer archivo existente
+        with open(aliases_md_path, 'r', encoding='utf-8') as f:
+            content = f.read()
 
-        # Limpiar archivo temporal
-        os.remove(temp_file)
+        # Agregar aliases al archivo de forma simple (al final antes del footer)
+        lines = content.split('\n')
 
-        if result == 0:
-            print("\n✅ ¡Aliases agregados exitosamente!")
-            print("\n💡 Para aplicar los cambios, ejecuta:")
-            print("   source ~/.config/fish/config.fish")
-            print("   o simplemente: exec fish")
+        # Buscar el footer
+        footer_index = -1
+        for i in range(len(lines) - 1, -1, -1):
+            if lines[i].strip().startswith('---') or lines[i].strip().startswith('*Creado:') or lines[i].strip().startswith('*Actualizado:'):
+                footer_index = i
+                break
+
+        # Construir las nuevas líneas de aliases
+        new_lines = []
+        if footer_index == -1 or not any('```bash' in line for line in lines):
+            # Si no hay bloque de código, crear uno
+            new_lines.append("## 📋 Aliases Personalizados\n")
+            new_lines.append("```bash\n")
+
+        for alias in aliases:
+            alias_line = f"{alias['name']}"
+            if alias['description']:
+                alias_line += f" - {alias['description']}"
+            else:
+                alias_line += f" - {alias['command']}"
+            new_lines.append(alias_line + "\n")
+
+        if footer_index == -1 or not any('```bash' in line for line in lines):
+            new_lines.append("```\n\n")
+
+        # Insertar antes del footer o al final
+        if footer_index > 0:
+            lines = lines[:footer_index] + new_lines + lines[footer_index:]
         else:
-            print("\n⚠️  Los aliases se agregaron a fish pero hubo un problema con el cheatsheet")
+            lines.extend(new_lines)
+            lines.append(f"---\n*Actualizado: {datetime.now().strftime('%Y-%m-%d')}*\n")
+
+        # Escribir archivo actualizado
+        with open(aliases_md_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(lines))
+
+        print(f"✅ Aliases agregados al cheatsheet: {aliases_md_path}")
+
+        print("\n✅ ¡Aliases agregados exitosamente!")
+        print("\n💡 Para aplicar los cambios, ejecuta:")
+        print("   exec fish")
 
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

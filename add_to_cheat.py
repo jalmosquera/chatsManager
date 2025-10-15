@@ -179,8 +179,8 @@ def parse_commands_input(input_text):
 
     return commands
 
-def select_category_for_commands(commands, existing_sections):
-    """Permite seleccionar categoría para cada comando"""
+def select_category_for_command(cmd_info, existing_sections):
+    """Permite seleccionar categoría para un comando"""
     # Mostrar categorías existentes
     print("\n📁 Categorías existentes:")
     section_list = list(existing_sections.keys())
@@ -189,35 +189,70 @@ def select_category_for_commands(commands, existing_sections):
         print(f"  {i}. {section} ({cmd_count} comandos)")
     print(f"  0. [Crear nueva categoría]")
 
-    # Procesar cada comando
-    for cmd_info in commands:
-        print(f"\n📝 Comando: {cmd_info['command']}")
-        if cmd_info['description']:
-            print(f"   Descripción: {cmd_info['description']}")
+    while True:
+        try:
+            choice = input(f"\n¿En qué categoría agregarlo? (1-{len(section_list)}, 0 para nueva): ").strip()
 
-        while True:
-            try:
-                choice = input(f"\n¿En qué categoría agregarlo? (1-{len(section_list)}, 0 para nueva): ").strip()
-
-                if choice == '0':
-                    # Crear nueva categoría
-                    new_category = input("📂 Nombre de la nueva categoría: ").strip()
-                    if new_category:
-                        cmd_info['category'] = new_category
-                        if new_category not in existing_sections:
-                            existing_sections[new_category] = []
-                        break
-                    else:
-                        print("❌ El nombre de la categoría no puede estar vacío")
+            if choice == '0':
+                # Crear nueva categoría
+                new_category = input("📂 Nombre de la nueva categoría: ").strip()
+                if new_category:
+                    cmd_info['category'] = new_category
+                    if new_category not in existing_sections:
+                        existing_sections[new_category] = []
+                        section_list.append(new_category)
+                    return cmd_info
                 else:
-                    idx = int(choice) - 1
-                    if 0 <= idx < len(section_list):
-                        cmd_info['category'] = section_list[idx]
-                        break
-                    else:
-                        print(f"❌ Por favor ingresa un número entre 0 y {len(section_list)}")
-            except ValueError:
-                print("❌ Por favor ingresa un número válido")
+                    print("❌ El nombre de la categoría no puede estar vacío")
+            else:
+                idx = int(choice) - 1
+                if 0 <= idx < len(section_list):
+                    cmd_info['category'] = section_list[idx]
+                    return cmd_info
+                else:
+                    print(f"❌ Por favor ingresa un número entre 0 y {len(section_list)}")
+        except ValueError:
+            print("❌ Por favor ingresa un número válido")
+
+def add_commands_interactively(existing_sections):
+    """Agrega comandos de forma interactiva pregunta por pregunta"""
+    commands = []
+
+    print("\n📝 Vamos a agregar comandos de forma interactiva")
+    print("=" * 50)
+
+    while True:
+        print("\n" + "─" * 50)
+
+        # Preguntar por el comando
+        command = input("\n💻 Dime el comando: ").strip()
+        if not command:
+            print("❌ El comando no puede estar vacío")
+            continue
+
+        # Formatear automáticamente combinaciones de teclas
+        command = format_keyboard_shortcuts(command)
+
+        # Preguntar por la descripción
+        description = input("📝 Dime la descripción: ").strip()
+
+        # Crear info del comando
+        cmd_info = {
+            'command': command,
+            'description': description,
+            'category': None
+        }
+
+        # Seleccionar categoría
+        cmd_info = select_category_for_command(cmd_info, existing_sections)
+        commands.append(cmd_info)
+
+        print(f"\n✅ Comando agregado: {command}")
+
+        # Preguntar si quiere agregar más
+        add_more = input("\n➕ ¿Agregar otro comando? (s/n): ").strip().lower()
+        if add_more not in ['s', 'si', 'sí', 'y', 'yes']:
+            break
 
     return commands
 
@@ -360,37 +395,25 @@ def main():
         sys.exit(1)
     
     print(f"📝 Agregando comandos a '{tool_name}'")
-    print("Ingresa los nuevos comandos (formato: 'comando - descripción' o 'comando # descripción')")
-    print("Presiona Ctrl+D cuando termines:\n")
-    
+
     try:
-        # Leer entrada del usuario
-        input_text = sys.stdin.read()
-        
-        if not input_text.strip():
-            print("❌ No se ingresaron comandos")
-            sys.exit(1)
-        
         # Leer archivo existente
         with open(filepath, 'r', encoding='utf-8') as f:
             existing_content = f.read()
-        
+
         # Extraer header original
         lines = existing_content.split('\n')
         original_header = lines[0] if lines else f"# {tool_name.title()}"
-        
+
         # Parsear contenido existente
         existing_sections = parse_existing_cheatsheet(existing_content)
-        
-        # Parsear nuevos comandos
-        new_commands = parse_commands_input(input_text)
+
+        # Agregar comandos de forma interactiva
+        new_commands = add_commands_interactively(existing_sections)
 
         if not new_commands:
-            print("❌ No se pudieron parsear los comandos")
+            print("❌ No se agregaron comandos")
             sys.exit(1)
-
-        # Seleccionar categoría para cada comando
-        new_commands = select_category_for_commands(new_commands, existing_sections)
 
         # Mezclar comandos
         updated_sections = merge_commands_into_sections(existing_sections, new_commands)
