@@ -1,63 +1,78 @@
 # 🔧 Mis Alias Personalizados
 
-## 📁 ✏️ Editores y Navegación
+> Fuente de verdad: aliases y funciones reales de Fish en `~/.config/fish/config.fish`, `~/.config/fish/conf.d/aliases.fish` y `~/.config/fish/functions/`.
+
+## ✏️ Editores y FZF
 ```bash
 v                               # nvim - Abrir Neovim
-la                              # ls -la - Listar archivos detallado
+fzfbat                          # fzf --preview="bat --theme=gruvbox-dark --color=always {}"
+fzfnvim                         # nvim (fzf --preview="bat --theme=gruvbox-dark --color=always {}")
 ```
 
-## 📁 🌳 Visualización de Directorios (Tree)
+## 📁 Listado y navegación
 ```bash
-l1                              # tree -L 1 - Árbol nivel 1
-l2                              # tree -L 2 - Árbol nivel 2
-l3                              # tree -L 3 - Árbol nivel 3
+ls                              # ls -la
+l                               # lsd -l
+la                              # lsd -a
+lla                             # lsd -la
+lt                              # lsd --tree
+l1                              # tree -L 1
+l2                              # tree -L 2
+l3                              # tree -L 3
+pj <proyecto>                   # Saltar a un proyecto definido en $PROJECT_PATHS
+pj open <proyecto>              # Saltar a un proyecto y abrirlo con $EDITOR
+antigravity [ruta]              # Abrir ruta en Finder; por defecto abre el directorio actual
 ```
 
-## 📁 🗂️ Navegación de Desarrollo
+## 🐍 Python / Entornos virtuales
 ```bash
-devpy                           # cd ~/Documents/py/django && l2
-devjs                           # cd ~/Documents/js/reactProjects && l2
+cvenv                           # python3 -m venv .venv
+avenv                           # source .venv/bin/activate.fish
 ```
 
-## 📁 🐍 Django Management Commands
+## 🐍 Django Management Commands
 ```bash
-runserver                       # python3 manager.py runserver
-check                           # python3 manager.py check
-makemigrations                  # python3 manager.py makemigrations
-migrate                         # python3 manager.py migrate
+runserver                       # python3 manage.py runserver
+createsuperuser                 # python3 manage.py createsuperuser
+check                           # python3 manage.py check
+migrate                         # python3 manage.py makemigrations; python3 manage.py migrate
 ```
 
-## 📁 📚 Sistema de Cheat Sheets
+## 🐳 Docker
 ```bash
-cheat <herramienta>             # Ver cheat sheet de herramienta
-cs <herramienta>                # Alias corto para cheat
-cheat                           # Listar todos los cheat sheets disponibles
+dk                              # docker
+dkps                            # docker ps
+dkpsa                           # docker ps -a
+dkstart                         # docker start
+dkstarti                        # docker start
+dkcdown                         # docker compose down
+dkcupd                          # docker compose up -d
+dkcupi                          # docker compose up -d -i
+dkcps                           # docker compose ps
+dkclog                          # docker compose logs -f
+dkcbuild                        # docker compose build
 ```
 
-## 📁 🚀 Ejemplos de uso frecuente
+## 🖥️ Servidores y utilidades locales
 ```bash
-# Desarrollo Python/Django
-devpy                           # Ir a proyectos Django
-runserver                       # Levantar servidor
-makemigrations                  # Crear migraciones
-migrate                         # Aplicar migraciones
-# Desarrollo JavaScript/React
-devjs                           # Ir a proyectos React
-l2                              # Ver estructura de directorios
-# Navegación general
-la                              # Ver archivos con detalles
-l1                              # Vista rápida del directorio actual
+cserver                         # ssh jserver
+commit                          # /Users/jalberth/Documents/customUtils/customsGIT.bash $argv
+tmux                            # command tmux -2 $argv
 ```
 
-## 📁 Comandos Generales
+## 📚 Sistema de Cheat Sheets
 ```bash
-l4 - tree -L 4                  # Arbol de nivel 4
-```
-
-## 📁 pruebas
-```bash
-la                              # ls-la
+cs                              # Mostrar menú de cheatsheets
+cs <herramienta>                # Ver cheatsheet de herramienta
+cheat                           # Compatibilidad: llama a cs
+cheat <herramienta>             # Compatibilidad: llama a cs <herramienta>
+csnew <herramienta>             # ~/.cheatsheets/csnew - Crear cheatsheet nuevo
+csadd <herramienta>             # ~/.cheatsheets/csadd - Agregar comandos a cheatsheet existente
+csedit <herramienta>            # ~/.cheatsheets/csedit - Editar comandos de un cheatsheet
+csdel <herramienta>             # ~/.cheatsheets/csdel - Eliminar comandos de un cheatsheet
+cshelp                          # ~/.cheatsheets/cshelp - Mostrar ayuda completa
+csalias                         # ~/.cheatsheets/csalias - Agregar alias vivo
 ```
 
 ---
-*Actualizado: 2025-10-15*
+*Actualizado: 2026-07-15*
