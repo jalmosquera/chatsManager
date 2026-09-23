@@ -11,6 +11,7 @@ A complete and elegant system for creating, managing, and consulting quick refer
 - [Installation](#-installation)
 - [Usage](#-usage)
   - [View a Cheatsheet](#view-a-cheatsheet)
+  - [Search Commands Globally](#search-commands-globally)
   - [Create New Cheatsheet](#create-new-cheatsheet)
   - [Add Commands](#add-commands)
   - [Edit Commands](#edit-commands)
@@ -24,22 +25,29 @@ A complete and elegant system for creating, managing, and consulting quick refer
 ## ✨ Features
 
 - 🎯 **Intuitive Management**: Simple and consistent command system with `cs` prefix
-- 📝 **Markdown Format**: Cheatsheets in Markdown format with elegant visualization using `glow`
+- 📝 **Rich Rendering**: Markdown cheatsheets rendered as colored command and description tables
 - 🔄 **Live Aliases**: Create aliases that work both as documentation and real shell commands
 - 📁 **Category Organization**: Interactive category selection when adding commands
 - ⌨️ **Automatic Shortcut Detection**: Automatically formats keyboard combinations (Ctrl+C, Cmd+Shift+N, etc.)
 - 🎨 **Smart Emojis**: Automatic emoji assignment based on command type
-- 🔍 **Easy Search**: Lists all available cheatsheets and allows quick search
+- 🔍 **Global Search**: `csfind` finds sections, commands, and descriptions across every cheatsheet
+- 🧭 **Interactive Hub**: `cs` provides actions and cheatsheets through `fzf`, previews, and case-insensitive search
+- 🎯 **Semantic Icons**: Each cheatsheet has an icon that matches its tool
 - 🔧 **Automatic Synchronization**: Aliases automatically sync with Fish shell
 
 ## 🔧 Requirements
 
 - **Fish Shell**: The system is designed to work with Fish shell
 - **Python 3**: For management scripts
-- **glow**: For elegant Markdown visualization in terminal
+- **rich-cli**: For table and color rendering
   ```bash
-  brew install glow
+  brew install rich-cli
   ```
+- **fzf**: For the interactive hub and global search
+  ```bash
+  brew install fzf
+  ```
+- **glow** (optional): To preview a cheatsheet immediately after creating it
 - **tree** (optional): For directory visualization aliases
 
 ## 📦 Installation
@@ -86,7 +94,7 @@ To view an existing cheatsheet:
 cs <tool-name>
 ```
 
-If you run `cs` without arguments, you'll see the main menu with all available commands and a list of existing cheatsheets.
+Running `cs` without arguments opens an interactive hub with management actions and cheatsheets. Type to filter, press `Enter` to open, and `Esc` to cancel. Each cheatsheet has a semantic icon, such as `⚡ warp`, `🪟 tmux`, `⌨️ nvim`, `🐳 docker`, and `🔀 git`.
 
 **Examples**:
 ```bash
@@ -94,6 +102,16 @@ cs git          # View git cheatsheet
 cs docker       # View docker cheatsheet
 cs nvim         # View nvim cheatsheet
 ```
+
+### Search Commands Globally
+
+Search by cheatsheet name, section, command, or description without case sensitivity:
+
+```bash
+csfind
+```
+
+The right panel displays a preview. Once a cheatsheet is open, use `/` or `?` to search within it, `n`/`N` to navigate matches, and `q` to quit.
 
 ### Create New Cheatsheet
 
@@ -211,7 +229,7 @@ cshelp
 ~/.cheatsheets/
 ├── README.md                    # Spanish documentation (primary)
 ├── README_EN.md                 # English documentation
-├── cs                          # Main command: view cheatsheets
+├── fish_aliases_example.fish   # Fish functions: cs, csfind, and interactive hub
 ├── csnew                       # Create new cheatsheet
 ├── csadd                       # Add commands
 ├── csedit                      # Edit commands
@@ -224,6 +242,8 @@ cshelp
 ├── delete_cheat.py            # Script to delete commands
 ├── add_alias.py               # Script to add aliases
 ├── sync_aliases.py            # Script to sync aliases with Fish
+├── render_cheatsheet.py        # Rich renderer with tables and Tmux theme
+├── index_cheatsheets.py        # Global search index for csfind
 └── *.md                       # Cheatsheet files
 ```
 
@@ -275,11 +295,11 @@ When you edit the aliases cheatsheet with `csedit aliases` or `csadd aliases`, t
 
 ### Elegant Visualization
 
-All cheatsheets are visualized with `glow`, which provides:
-- Syntax highlighting
-- Rendered Markdown format
-- Colored code blocks
-- Easy navigation
+All cheatsheets are visualized with Rich, which provides:
+- Separate command and description columns
+- Colors synchronized with the active Tmux theme, with Tokyo Night as fallback
+- Centered tables with borders and row separators
+- A pager compatible with `/`, `?`, `n`, `N`, and `q`
 
 ## 💡 Usage Examples
 

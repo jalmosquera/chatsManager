@@ -1,4 +1,4 @@
-# 🛠️ Google - Comandos Esenciales
+# 🌐 Google - Comandos Esenciales
 
 ## 📁 Comandos Generales
 ```bash

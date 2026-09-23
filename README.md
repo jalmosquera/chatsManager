@@ -11,6 +11,7 @@ Un sistema completo y elegante para crear, gestionar y consultar hojas de refere
 - [Instalación](#-instalación)
 - [Uso](#-uso)
   - [Ver un Cheatsheet](#ver-un-cheatsheet)
+  - [Buscar Comandos Globalmente](#buscar-comandos-globalmente)
   - [Crear Nuevo Cheatsheet](#crear-nuevo-cheatsheet)
   - [Agregar Comandos](#agregar-comandos)
   - [Editar Comandos](#editar-comandos)
@@ -24,22 +25,29 @@ Un sistema completo y elegante para crear, gestionar y consultar hojas de refere
 ## ✨ Características
 
 - 🎯 **Gestión Intuitiva**: Sistema de comandos simple y coherente con prefijo `cs`
-- 📝 **Formato Markdown**: Cheatsheets en formato Markdown con visualización elegante usando `glow`
+- 📝 **Renderizado Rich**: Cheatsheets Markdown renderizados como tablas coloreadas de comando y descripción
 - 🔄 **Aliases Vivos**: Crea aliases que funcionan tanto como documentación como comandos reales en tu shell
 - 📁 **Organización por Categorías**: Selección interactiva de categorías al agregar comandos
 - ⌨️ **Detección Automática de Atajos**: Formatea automáticamente combinaciones de teclas (Ctrl+C, Cmd+Shift+N, etc.)
 - 🎨 **Emojis Inteligentes**: Asignación automática de emojis según el tipo de comando
-- 🔍 **Búsqueda Fácil**: Lista todos los cheatsheets disponibles y permite búsqueda rápida
+- 🔍 **Búsqueda Global**: `csfind` encuentra secciones, comandos y descripciones en todos los cheatsheets
+- 🧭 **Hub Interactivo**: `cs` ofrece acciones y cheatsheets con `fzf`, preview y búsqueda sin distinguir mayúsculas
+- 🎯 **Íconos Semánticos**: Cada cheatsheet se identifica con un ícono acorde a su herramienta
 - 🔧 **Sincronización Automática**: Los aliases se sincronizan automáticamente con Fish shell
 
 ## 🔧 Requisitos
 
 - **Fish Shell**: El sistema está diseñado para funcionar con Fish shell
 - **Python 3**: Para los scripts de gestión
-- **glow**: Para visualización elegante de Markdown en terminal
+- **rich-cli**: Para el renderizado de tablas y colores
   ```bash
-  brew install glow
+  brew install rich-cli
   ```
+- **fzf**: Para el hub interactivo y la búsqueda global
+  ```bash
+  brew install fzf
+  ```
+- **glow** (opcional): Para previsualizar un cheatsheet inmediatamente después de crearlo
 - **tree** (opcional): Para los aliases de visualización de directorios
 
 ## 📦 Instalación
@@ -86,7 +94,7 @@ Para ver un cheatsheet existente:
 cs <nombre-herramienta>
 ```
 
-Si ejecutas `cs` sin argumentos, verás el menú principal con todos los comandos disponibles y la lista de cheatsheets existentes.
+Si ejecutas `cs` sin argumentos, se abre un hub interactivo con acciones de gestión y cheatsheets. Podés escribir para filtrar, usar `Enter` para abrir y `Esc` para cancelar. Cada cheatsheet tiene un ícono semántico, por ejemplo `⚡ warp`, `🪟 tmux`, `⌨️ nvim`, `🐳 docker` y `🔀 git`.
 
 **Ejemplos**:
 ```bash
@@ -94,6 +102,16 @@ cs git          # Ver cheatsheet de git
 cs docker       # Ver cheatsheet de docker
 cs nvim         # Ver cheatsheet de nvim
 ```
+
+### Buscar Comandos Globalmente
+
+Busca por nombre de cheatsheet, sección, comando o descripción, sin distinguir mayúsculas de minúsculas:
+
+```bash
+csfind
+```
+
+El panel derecho muestra una previsualización. Una vez abierto el cheatsheet, usá `/` o `?` para buscar dentro del documento, `n`/`N` para recorrer coincidencias y `q` para salir.
 
 ### Crear Nuevo Cheatsheet
 
@@ -211,7 +229,7 @@ cshelp
 ~/.cheatsheets/
 ├── README.md                    # Documentación en español (principal)
 ├── README_EN.md                 # Documentación en inglés
-├── cs                          # Comando principal: ver cheatsheets
+├── fish_aliases_example.fish   # Funciones Fish: cs, csfind y el hub interactivo
 ├── csnew                       # Crear nuevo cheatsheet
 ├── csadd                       # Agregar comandos
 ├── csedit                      # Editar comandos
@@ -224,6 +242,8 @@ cshelp
 ├── delete_cheat.py            # Script para eliminar comandos
 ├── add_alias.py               # Script para agregar aliases
 ├── sync_aliases.py            # Script para sincronizar aliases con Fish
+├── render_cheatsheet.py        # Renderizador Rich con tablas y tema de Tmux
+├── index_cheatsheets.py        # Índice de búsqueda global para csfind
 └── *.md                       # Archivos de cheatsheets
 ```
 
@@ -275,11 +295,11 @@ Cuando editas el cheatsheet de aliases con `csedit aliases` o `csadd aliases`, e
 
 ### Visualización Elegante
 
-Todos los cheatsheets se visualizan con `glow`, que proporciona:
-- Sintaxis resaltada
-- Formato Markdown renderizado
-- Código con colores
-- Navegación fácil
+Todos los cheatsheets se visualizan con Rich, que proporciona:
+- Columnas separadas para comando y descripción
+- Colores sincronizados con el tema activo de Tmux, con Tokyo Night como fallback
+- Tablas centradas con bordes y separadores por fila
+- Pager compatible con `/`, `?`, `n`, `N` y `q`
 
 ## 💡 Ejemplos de Uso
 

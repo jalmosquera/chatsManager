@@ -1,4 +1,4 @@
-# 🐍 Django - Comandos Esenciales
+# 🌐 Django - Comandos Esenciales
 
 ## 🏗️ Proyecto y Apps
 ```bash

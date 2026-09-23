@@ -2,6 +2,8 @@
 import sys
 import os
 import re
+import shutil
+import subprocess
 from datetime import datetime
 
 def get_emoji_for_category(command_text):
@@ -287,6 +289,16 @@ def main():
         sys.exit(1)
     
     tool_name = sys.argv[1]
+    cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
+    filename = f"{tool_name.lower().replace(' ', '_').replace('-', '_')}.md"
+    filepath = os.path.join(cheatsheets_dir, filename)
+
+    # Confirm before reading stdin so the response is not consumed as a command.
+    if os.path.exists(filepath):
+        response = input(f"⚠️  El archivo {filename} ya existe. ¿Sobrescribir? (y/n): ")
+        if response.lower() != 'y':
+            print("❌ Operación cancelada")
+            sys.exit(1)
     
     print(f"📝 Creando cheatsheet para {tool_name}")
     print("Ingresa los comandos (formato: 'comando - descripción' o 'comando # descripción')")
@@ -310,18 +322,6 @@ def main():
         # Generar markdown
         markdown_content = generate_markdown(tool_name, commands)
         
-        # Crear archivo
-        cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
-        filename = f"{tool_name.lower().replace(' ', '_').replace('-', '_')}.md"
-        filepath = os.path.join(cheatsheets_dir, filename)
-        
-        # Verificar si el archivo ya existe
-        if os.path.exists(filepath):
-            response = input(f"⚠️  El archivo {filename} ya existe. ¿Sobrescribir? (y/n): ")
-            if response.lower() != 'y':
-                print("❌ Operación cancelada")
-                sys.exit(1)
-        
         # Escribir archivo
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(markdown_content)
@@ -341,7 +341,10 @@ def main():
         
         # Mostrar el archivo en la terminal
         print(f"\n📖 Mostrando {filename}:\n")
-        os.system(f'glow -p "{filepath}"')
+        if shutil.which('glow'):
+            subprocess.run(['glow', '-p', filepath], check=False)
+        else:
+            print("⚠️  glow no está instalado; el cheatsheet fue creado correctamente.")
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

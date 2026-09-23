@@ -1,4 +1,4 @@
-# 🛠️ Nvim - Comandos Esenciales
+# ⌨️ Nvim - Comandos Esenciales
 
 ## 📁 Comandos Generales
 ```bash
