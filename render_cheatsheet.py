@@ -7,6 +7,7 @@ import argparse
 import os
 import re
 import subprocess
+import sys
 import unicodedata
 from contextlib import nullcontext
 from pathlib import Path
@@ -227,7 +228,12 @@ def main() -> None:
     if not args.file.is_file():
         parser.error(f"No existe el cheatsheet: {args.file}")
 
-    render(args.file, use_pager=not args.no_pager)
+    try:
+        render(args.file, use_pager=not args.no_pager)
+    except BrokenPipeError:
+        # Less exits immediately when / opens the contextual search popup.
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, sys.stdout.fileno())
 
 
 if __name__ == "__main__":
