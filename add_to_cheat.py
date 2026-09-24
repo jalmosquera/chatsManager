@@ -2,6 +2,7 @@
 import sys
 import os
 import re
+import subprocess
 from datetime import datetime
 
 def get_emoji_for_category(command_text):
@@ -173,9 +174,7 @@ def parse_commands_input(input_text):
             description = ''
 
         if command:
-            # Formatear automáticamente combinaciones de teclas
-            formatted_command = format_keyboard_shortcuts(command)
-            commands.append({'command': formatted_command, 'description': description, 'category': None})
+            commands.append({'command': command, 'description': description, 'category': None})
 
     return commands
 
@@ -220,6 +219,9 @@ def add_commands_interactively(existing_sections):
 
     print("\n📝 Vamos a agregar comandos de forma interactiva")
     print("=" * 50)
+    print("💡 Estructura: comando → descripción (se piden por separado)")
+    print("   Ejemplo: git status → Muestra el estado del repositorio")
+    print("   Atajos: se conserva exactamente el texto que escribís.")
 
     while True:
         print("\n" + "─" * 50)
@@ -229,9 +231,6 @@ def add_commands_interactively(existing_sections):
         if not command:
             print("❌ El comando no puede estar vacío")
             continue
-
-        # Formatear automáticamente combinaciones de teclas
-        command = format_keyboard_shortcuts(command)
 
         # Preguntar por la descripción
         description = input("📝 Dime la descripción: ").strip()
@@ -440,7 +439,10 @@ def main():
 
         # Mostrar el archivo en la terminal
         print(f"\n📖 Mostrando {filename}:\n")
-        os.system(f'glow -p "{filepath}"')
+        subprocess.run(
+            [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), filepath],
+            check=False,
+        )
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

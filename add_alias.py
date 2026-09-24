@@ -2,6 +2,7 @@
 import sys
 import os
 import re
+import subprocess
 from datetime import datetime
 
 def parse_alias_input(input_text):
@@ -97,6 +98,9 @@ def add_aliases_interactively():
 
     print("\n🔧 Agregar Alias Vivo")
     print("=" * 50)
+    print("💡 Estructura final: alias='comando'  # descripción")
+    print("   Ejemplo: gs='git status'  # Muestra el estado del repositorio")
+    print("   Los tres datos se piden por separado a continuación.")
 
     while True:
         print("\n" + "─" * 50)
@@ -213,6 +217,12 @@ def main():
         print("\n✅ ¡Aliases agregados exitosamente!")
         print("\n💡 Para aplicar los cambios, ejecuta:")
         print("   exec fish")
+
+        print("\n📖 Mostrando aliases.md:\n")
+        subprocess.run(
+            [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), aliases_md_path],
+            check=False,
+        )
 
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

@@ -2,6 +2,7 @@
 import sys
 import os
 import re
+import subprocess
 from datetime import datetime
 
 def parse_existing_cheatsheet(content):
@@ -123,15 +124,14 @@ def edit_command_interactive(cmd_info):
     print(f"Sección: {cmd_info['section']}")
     print(f"Comando actual: {cmd_info['command']}")
     print(f"Descripción actual: {cmd_info['description'] or '(sin descripción)'}")
+    print("💡 Escribí el nuevo valor o presioná Enter para conservar el actual.")
+    print("   El comando conserva exactamente las mayúsculas y símbolos que escribís.")
     print()
     
     # Editar comando
     new_command = input(f"Nuevo comando [{cmd_info['command']}]: ").strip()
     if not new_command:
         new_command = cmd_info['command']
-    else:
-        # Formatear automáticamente combinaciones de teclas
-        new_command = format_keyboard_shortcuts(new_command)
     
     # Editar descripción
     current_desc = cmd_info['description'] or ""
@@ -260,7 +260,10 @@ def main():
 
         # Mostrar el archivo en la terminal
         print(f"\n📖 Mostrando {filename}:\n")
-        os.system(f'glow -p "{filepath}"')
+        subprocess.run(
+            [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), filepath],
+            check=False,
+        )
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

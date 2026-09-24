@@ -28,7 +28,7 @@ Un sistema completo y elegante para crear, gestionar y consultar hojas de refere
 - 📝 **Renderizado Rich**: Cheatsheets Markdown renderizados como tablas coloreadas de comando y descripción
 - 🔄 **Aliases Vivos**: Crea aliases que funcionan tanto como documentación como comandos reales en tu shell
 - 📁 **Organización por Categorías**: Selección interactiva de categorías al agregar comandos
-- ⌨️ **Detección Automática de Atajos**: Formatea automáticamente combinaciones de teclas (Ctrl+C, Cmd+Shift+N, etc.)
+- ⌨️ **Preservación Literal**: Conserva exactamente las mayúsculas, símbolos y atajos que escribís
 - 🎨 **Emojis Inteligentes**: Asignación automática de emojis según el tipo de comando
 - 🔍 **Búsqueda Global**: `csfind` encuentra secciones, comandos y descripciones en todos los cheatsheets
 - 🧭 **Hub Interactivo**: `cs` ofrece acciones y cheatsheets con `fzf`, preview y búsqueda sin distinguir mayúsculas
@@ -256,20 +256,13 @@ Al agregar comandos con `csadd`, puedes:
 - Seleccionar una categoría existente por número
 - Crear una nueva categoría sobre la marcha
 
-### Formateo Automático de Atajos de Teclado
+### Preservación de Comandos y Atajos
 
-El sistema detecta y formatea automáticamente combinaciones de teclas:
+El sistema guarda el comando exactamente como lo escribís. Esto evita que atajos, flags, mayúsculas o símbolos sean modificados automáticamente:
 
-**Entrada**:
 ```
-ctrl c - Copiar
-cmd shift n - Nueva ventana
-```
-
-**Salida**:
-```
-Ctrl + C - Copiar
-Cmd + Shift + N - Nueva ventana
+ctrl+a+n - Crear sesión
+git status --short - Ver estado compacto
 ```
 
 ### Emojis Contextuales

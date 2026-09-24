@@ -2,6 +2,7 @@
 import sys
 import os
 import re
+import subprocess
 from datetime import datetime
 
 def parse_existing_cheatsheet(content):
@@ -156,8 +157,8 @@ def main():
         display_commands(commands)
         
         # Permitir selección múltiple
-        print("💡 Puedes seleccionar múltiples comandos separados por comas (ej: 1,3,5)")
-        print("💡 O usar rangos (ej: 1-3,5,7-9)")
+        print("💡 Estructura de selección: números separados por comas o rangos")
+        print("   Ejemplos: 1,3,5  ·  1-3,5,7-9  ·  q para cancelar")
         
         # Solicitar selección
         while True:
@@ -238,7 +239,10 @@ def main():
         
         # Mostrar el archivo en la terminal
         print(f"\n📖 Mostrando {filename}:\n")
-        os.system(f'glow -p "{filepath}"')
+        subprocess.run(
+            [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), filepath],
+            check=False,
+        )
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

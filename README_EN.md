@@ -28,7 +28,7 @@ A complete and elegant system for creating, managing, and consulting quick refer
 - 📝 **Rich Rendering**: Markdown cheatsheets rendered as colored command and description tables
 - 🔄 **Live Aliases**: Create aliases that work both as documentation and real shell commands
 - 📁 **Category Organization**: Interactive category selection when adding commands
-- ⌨️ **Automatic Shortcut Detection**: Automatically formats keyboard combinations (Ctrl+C, Cmd+Shift+N, etc.)
+- ⌨️ **Literal Preservation**: Keeps the exact capitalization, symbols, and shortcuts you enter
 - 🎨 **Smart Emojis**: Automatic emoji assignment based on command type
 - 🔍 **Global Search**: `csfind` finds sections, commands, and descriptions across every cheatsheet
 - 🧭 **Interactive Hub**: `cs` provides actions and cheatsheets through `fzf`, previews, and case-insensitive search
@@ -256,20 +256,13 @@ When adding commands with `csadd`, you can:
 - Select an existing category by number
 - Create a new category on the fly
 
-### Automatic Keyboard Shortcut Formatting
+### Command and Shortcut Preservation
 
-The system automatically detects and formats keyboard combinations:
+The system saves commands exactly as you enter them. This prevents automatic changes to shortcuts, flags, capitalization, or symbols:
 
-**Input**:
 ```
-ctrl c - Copy
-cmd shift n - New window
-```
-
-**Output**:
-```
-Ctrl + C - Copy
-Cmd + Shift + N - New window
+ctrl+a+n - Create session
+git status --short - Show compact status
 ```
 
 ### Contextual Emojis

@@ -2,7 +2,6 @@
 import sys
 import os
 import re
-import shutil
 import subprocess
 from datetime import datetime
 
@@ -179,9 +178,7 @@ def parse_commands_input(input_text):
             description = ''
             
         if command:
-            # Formatear automáticamente combinaciones de teclas
-            formatted_command = format_keyboard_shortcuts(command)
-            commands.append({'command': formatted_command, 'description': description})
+            commands.append({'command': command, 'description': description})
     
     return commands
 
@@ -301,7 +298,9 @@ def main():
             sys.exit(1)
     
     print(f"📝 Creando cheatsheet para {tool_name}")
-    print("Ingresa los comandos (formato: 'comando - descripción' o 'comando # descripción')")
+    print("💡 Estructura por línea: comando - descripción")
+    print("   Ejemplos: git status - Muestra el estado del repositorio")
+    print("             git log --oneline # Historial compacto")
     print("Presiona Ctrl+D cuando termines:\n")
     
     try:
@@ -341,10 +340,10 @@ def main():
         
         # Mostrar el archivo en la terminal
         print(f"\n📖 Mostrando {filename}:\n")
-        if shutil.which('glow'):
-            subprocess.run(['glow', '-p', filepath], check=False)
-        else:
-            print("⚠️  glow no está instalado; el cheatsheet fue creado correctamente.")
+        subprocess.run(
+            [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), filepath],
+            check=False,
+        )
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

@@ -80,7 +80,8 @@ C-a S-Up                        # Move the visible part of the window up
 C-a S-Down                      # Move the visible part of the window down
 C-a S-Left                      # Move the visible part of the window left
 C-a S-Right                     # Move the visible part of the window right
+ctrl a N                        # crea una nueva session
 ```
 
 ---
-*Creado: 2026-09-23*
+*Actualizado: 2026-09-24*

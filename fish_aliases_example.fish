@@ -147,7 +147,11 @@ function cs
             case add edit delete
                 set tool (__cs_select_cheatsheet '⌕ destino> ' 'Seleccioná el cheatsheet a modificar')
                 if test -n "$tool"
-                    "$cheat_dir/cs$fields[2]" "$tool"
+                    set script_action $fields[2]
+                    if test "$script_action" = delete
+                        set script_action del
+                    end
+                    "$cheat_dir/cs$script_action" "$tool"
                 end
             case alias
                 "$cheat_dir/csalias"
