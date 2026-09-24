@@ -25,64 +25,42 @@ A complete and elegant system for creating, managing, and consulting quick refer
 ## ✨ Features
 
 - 🎯 **Intuitive Management**: Simple and consistent command system with `cs` prefix
-- 📝 **Rich Rendering**: Markdown cheatsheets rendered as colored command and description tables
+- 📝 **Rich Rendering**: Markdown cheatsheets rendered as colored name, command, and description tables
+- ▦ **Automatic Banners**: Each cheatsheet generates a compact banner from its title when opened
 - 🔄 **Live Aliases**: Create aliases that work both as documentation and real shell commands
 - 📁 **Category Organization**: Interactive category selection when adding commands
 - ⌨️ **Literal Preservation**: Keeps the exact capitalization, symbols, and shortcuts you enter
 - 🎨 **Smart Emojis**: Automatic emoji assignment based on command type
-- 🔍 **Global Search**: `csfind` finds sections, commands, and descriptions across every cheatsheet
-- 🧭 **Interactive Hub**: `cs` provides actions and cheatsheets through `fzf`, previews, and case-insensitive search
+- 🔍 **Global Search**: `csfind` finds names, commands, and descriptions across every cheatsheet
+- 🧭 **Interactive Hub**: `cs` shows a centered table selectable by number, name, or Tab
 - 🎯 **Semantic Icons**: Each cheatsheet has an icon that matches its tool
 - 🔧 **Automatic Synchronization**: Aliases automatically sync with Fish shell
+- 🐧 **Portable Installation**: One installer prepares macOS and Linux with the same dependencies and configuration
 
 ## 🔧 Requirements
 
-- **Fish Shell**: The system is designed to work with Fish shell
-- **Python 3**: For management scripts
-- **rich-cli**: For table and color rendering
-  ```bash
-  brew install rich-cli
-  ```
-- **fzf**: For the interactive hub and global search
-  ```bash
-  brew install fzf
-  ```
-- **glow** (optional): To preview a cheatsheet immediately after creating it
-- **tree** (optional): For directory visualization aliases
+The installer detects and installs `fish`, `fzf`, `python3`, `less`, and Rich. It supports Homebrew on macOS and `apt`, `dnf`, `pacman`, or `apk` on Linux. macOS requires [Homebrew](https://brew.sh) in advance; Linux may ask for your `sudo` password.
 
 ## 📦 Installation
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/jalmosquera/chatsManager.git ~/.cheatsheets
-   ```
+Clone and run one command:
 
-2. **Make scripts executable**:
-   ```bash
-   chmod +x ~/.cheatsheets/cs*
-   chmod +x ~/.cheatsheets/*.py
-   ```
+```bash
+git clone https://github.com/jalmosquera/chatsManager.git ~/.cheatsheets && ~/.cheatsheets/install.sh
+```
 
-3. **Configure Fish shell**:
+The installer creates a local virtual environment at `~/.cheatsheets/.venv` and an isolated snippet at `~/.config/fish/conf.d/cheats_manager.fish`; it does not replace `config.fish` or your personal aliases file. Open a new Fish terminal or load it now:
 
-   Copy or merge the aliases file content with your Fish configuration:
-   ```bash
-   # Create directory if it doesn't exist
-   mkdir -p ~/.config/fish/conf.d/
+```fish
+source ~/.config/fish/conf.d/cheats_manager.fish
+cs
+```
 
-   # Copy or merge aliases
-   cp ~/.cheatsheets/fish_aliases_example.fish ~/.config/fish/conf.d/aliases.fish
-   ```
+Preview all actions without modifying the system:
 
-4. **Reload Fish**:
-   ```bash
-   exec fish
-   ```
-
-5. **Verify installation**:
-   ```bash
-   cs
-   ```
+```bash
+~/.cheatsheets/install.sh --dry-run
+```
 
 ## 📖 Usage
 
@@ -94,7 +72,7 @@ To view an existing cheatsheet:
 cs <tool-name>
 ```
 
-Running `cs` without arguments opens an interactive hub with management actions and cheatsheets. Type to filter, press `Enter` to open, and `Esc` to cancel. Each cheatsheet has a semantic icon, such as `⚡ warp`, `🪟 tmux`, `⌨️ nvim`, `🐳 docker`, and `🔀 git`.
+Running `cs` without arguments opens a centered hub with a table of management actions and cheatsheets. Type `/` to open search, or type its number or name and press `Enter`; `Tab` completes the name and `Esc` cancels. CRUD actions show a breadcrumb and, after success, a summary that closes with `Enter` before returning to the hub. In a CRUD target selector, `q` or `Esc` cancel and return to the hub. When opening a cheatsheet from this menu, `q` returns to the hub. Each cheatsheet has a semantic icon, such as `⚡ warp`, `🪟 tmux`, `⌨️ nvim`, `🐳 docker`, and `🔀 git`.
 
 **Examples**:
 ```bash
@@ -105,13 +83,13 @@ cs nvim         # View nvim cheatsheet
 
 ### Search Commands Globally
 
-Search by cheatsheet name, section, command, or description without case sensitivity:
+Search by cheatsheet name, section, entry name, command, or description without case sensitivity:
 
 ```bash
 csfind
 ```
 
-The right panel displays a preview. Once a cheatsheet is open, use `/` or `?` to search within it, `n`/`N` to navigate matches, and `q` to quit.
+The right panel displays a preview. Once a `.md` cheatsheet is open, the same search remains available inside the document: `/text` or `?text` searches, `n`/`N` navigate matches, and `q` returns to the hub.
 
 ### Create New Cheatsheet
 
@@ -121,19 +99,18 @@ Create a new cheatsheet from scratch:
 csnew <tool-name>
 ```
 
-The system will ask you to:
-1. Enter commands (format: `command - description`)
-2. Press Ctrl+D when finished
-3. It will automatically categorize and create the file
+For each entry, the system will ask for:
+1. Name
+2. Command
+3. Description
+4. It will automatically categorize and create the file
 
 **Example**:
 ```bash
 csnew kubectl
-# Then enter:
-kubectl get pods - List all pods
-kubectl describe pod <name> - Show pod details
-kubectl logs <pod> - Show pod logs
-# Press Ctrl+D
+# Name: List pods
+# Command: kubectl get pods
+# Description: List all pods
 ```
 
 ### Add Commands
@@ -145,20 +122,18 @@ csadd <tool-name>
 ```
 
 **Interactive flow**:
-1. Enter commands (format: `command - description`)
-2. Press Ctrl+D when finished
-3. Select category for each command:
+1. Enter name, command, and description separately
+2. Select category for each command:
    - Choose an existing category (by number)
    - Or create a new category (option 0)
 
 **Example**:
 ```bash
 csadd git
-# Enter:
-git stash - Save changes temporarily
-git stash pop - Restore saved changes
-# Press Ctrl+D
-# Then select category
+# Name: Save changes
+# Command: git stash
+# Description: Save changes temporarily
+# Then select a category
 ```
 
 ### Edit Commands
@@ -169,13 +144,13 @@ Edit existing commands in a cheatsheet:
 csedit <tool-name>
 ```
 
-The system will display all numbered commands. Select the one you want to edit and modify the command and/or description.
+The system will display all numbered entries. Select one and modify its name, command, and/or description.
 
 **Example**:
 ```bash
 csedit docker
 # Select command number to edit
-# Modify command and description
+# Modify name, command, and description
 # Confirm changes
 ```
 
@@ -197,18 +172,14 @@ Displays all commands and lets you select which ones to delete.
 csalias
 ```
 
-**Input format**:
-```
-name='command' - description
-```
+The flow asks for the alias name, the command to execute, and the description in separate fields.
 
 **Example**:
 ```bash
 csalias
-# Enter:
-ll='ls -lah' - Detailed list with hidden files
-gst='git status' - Git status
-# Press Ctrl+D
+# Alias name: ll
+# Command to execute: ls -lah
+# Description: Detailed list with hidden files
 ```
 
 Aliases will be automatically added to:
@@ -230,6 +201,9 @@ cshelp
 ├── README.md                    # Spanish documentation (primary)
 ├── README_EN.md                 # English documentation
 ├── fish_aliases_example.fish   # Fish functions: cs, csfind, and interactive hub
+├── install.sh                  # macOS and Linux installer
+├── requirements.txt            # Rich Python dependency
+├── runtime_paths.py            # Portable installation paths
 ├── csnew                       # Create new cheatsheet
 ├── csadd                       # Add commands
 ├── csedit                      # Edit commands
@@ -289,7 +263,7 @@ When you edit the aliases cheatsheet with `csedit aliases` or `csadd aliases`, t
 ### Elegant Visualization
 
 All cheatsheets are visualized with Rich, which provides:
-- Separate command and description columns
+- Separate name, command, and description columns
 - Colors synchronized with the active Tmux theme, with Tokyo Night as fallback
 - Centered tables with borders and row separators
 - A pager compatible with `/`, `?`, `n`, `N`, and `q`
@@ -302,13 +276,9 @@ All cheatsheets are visualized with Rich, which provides:
 # Create the cheatsheet
 csnew docker
 
-# Enter commands
-docker ps - List running containers
-docker images - List available images
-docker run <image> - Run a container
-docker stop <id> - Stop a container
-docker rm <id> - Remove a container
-# Press Ctrl+D
+# Name: List containers
+# Command: docker ps
+# Description: List running containers
 
 # View the result
 cs docker
@@ -320,10 +290,9 @@ cs docker
 # Add commands
 csadd git
 
-# Enter new commands
-git cherry-pick <commit> - Apply a specific commit
-git rebase -i HEAD~3 - Interactive rebase last 3 commits
-# Press Ctrl+D
+# Name: Apply commit
+# Command: git cherry-pick <commit>
+# Description: Apply a specific commit
 
 # Select category
 # 1. Basic Commands (15 commands)
@@ -339,12 +308,9 @@ git rebase -i HEAD~3 - Interactive rebase last 3 commits
 # Add aliases that work immediately
 csalias
 
-# Enter aliases
-gco='git checkout' - Switch branch
-gpl='git pull' - Update branch
-gps='git push' - Push changes
-dc='docker-compose' - Docker compose shortcut
-# Press Ctrl+D
+# Alias name: gco
+# Command to execute: git checkout
+# Description: Switch branch
 
 # Aliases work right away:
 gco main          # Switch to main branch

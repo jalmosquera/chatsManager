@@ -5,6 +5,9 @@ import re
 import subprocess
 from datetime import datetime
 
+from cheatsheet_format import format_entry
+from runtime_paths import cheatsheets_dir as installed_cheatsheets_dir
+
 def get_emoji_for_category(command_text):
     """Determina el emoji apropiado basado en el contenido del comando"""
     command_lower = command_text.lower()
@@ -153,32 +156,28 @@ def format_keyboard_shortcuts(text):
     
     return text
 
-def parse_commands_input(input_text):
-    """Parsea el texto de entrada y extrae comandos con descripciones"""
+def collect_commands_interactively():
+    """Collect command records with separate name, command, and description fields."""
     commands = []
-    lines = input_text.strip().split('\n')
-    
-    for line in lines:
-        line = line.strip()
-        if not line or line.startswith('#'):
+    print("\n📝 Agregá cada comando con sus tres datos.")
+
+    while True:
+        name = input("📛 Nombre: ").strip()
+        if not name:
+            print("❌ El nombre no puede estar vacío")
             continue
-            
-        # Buscar patrones como "comando - descripción" o "comando # descripción"
-        if ' - ' in line:
-            parts = line.split(' - ', 1)
-            command = parts[0].strip()
-            description = parts[1].strip() if len(parts) > 1 else ''
-        elif ' # ' in line:
-            parts = line.split(' # ', 1)
-            command = parts[0].strip()
-            description = parts[1].strip() if len(parts) > 1 else ''
-        else:
-            # Si no hay separador claro, todo es el comando
-            command = line.strip()
-            description = ''
-            
-        if command:
-            commands.append({'command': command, 'description': description})
+
+        command = input("💻 Comando: ").strip()
+        if not command:
+            print("❌ El comando no puede estar vacío")
+            continue
+
+        description = input("📝 Descripción: ").strip()
+        commands.append({"name": name, "command": command, "description": description})
+
+        add_more = input("➕ ¿Agregar otro comando? (s/n): ").strip().lower()
+        if add_more not in ("s", "si", "sí", "y", "yes"):
+            return commands
     
     return commands
 
@@ -248,24 +247,10 @@ def generate_markdown(tool_name, commands):
             category_emoji = '❓'
         
         markdown += f"## {category_emoji} {category}\n"
-        markdown += "```bash\n"
+        markdown += "```tsv\n"
         
         for cmd_info in cmd_list:
-            if cmd_info['description']:
-                # Alinear comentarios para que se vean ordenados
-                command_part = cmd_info['command']
-                comment_part = f"  # {cmd_info['description']}"
-                
-                # Ajustar espaciado para alineación (máximo 30 caracteres para el comando)
-                if len(command_part) < 30:
-                    spaces_needed = 30 - len(command_part)
-                    command_line = command_part + ' ' * spaces_needed + comment_part
-                else:
-                    command_line = command_part + comment_part
-                    
-                markdown += f"{command_line}\n"
-            else:
-                markdown += f"{cmd_info['command']}\n"
+            markdown += f"{format_entry(cmd_info['name'], cmd_info['command'], cmd_info['description'])}\n"
         
         markdown += "```\n\n"
     
@@ -278,17 +263,13 @@ def generate_markdown(tool_name, commands):
 def main():
     if len(sys.argv) < 2:
         print("Uso: python3 create_cheatsheet.py <nombre_herramienta>")
-        print("Luego ingresa los comandos (uno por línea) y presiona Ctrl+D para finalizar")
-        print("\nFormato sugerido:")
-        print("comando - descripción")
-        print("otro_comando # otra descripción")
-        print("comando_sin_descripción")
+        print("Luego ingresá nombre, comando y descripción para cada registro")
         sys.exit(1)
     
     tool_name = sys.argv[1]
-    cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
+    cheatsheets_dir = installed_cheatsheets_dir()
     filename = f"{tool_name.lower().replace(' ', '_').replace('-', '_')}.md"
-    filepath = os.path.join(cheatsheets_dir, filename)
+    filepath = cheatsheets_dir / filename
 
     # Confirm before reading stdin so the response is not consumed as a command.
     if os.path.exists(filepath):
@@ -298,21 +279,10 @@ def main():
             sys.exit(1)
     
     print(f"📝 Creando cheatsheet para {tool_name}")
-    print("💡 Estructura por línea: comando - descripción")
-    print("   Ejemplos: git status - Muestra el estado del repositorio")
-    print("             git log --oneline # Historial compacto")
-    print("Presiona Ctrl+D cuando termines:\n")
+    print("💡 Cada registro pide nombre, comando y descripción por separado.")
     
     try:
-        # Leer entrada del usuario
-        input_text = sys.stdin.read()
-        
-        if not input_text.strip():
-            print("❌ No se ingresaron comandos")
-            sys.exit(1)
-        
-        # Parsear comandos
-        commands = parse_commands_input(input_text)
+        commands = collect_commands_interactively()
         
         if not commands:
             print("❌ No se pudieron parsear los comandos")
@@ -344,6 +314,8 @@ def main():
             [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), filepath],
             check=False,
         )
+        print(f"\n✓ Resumen: {filename} creado con {len(commands)} comandos.")
+        input("Presioná Enter para volver al hub...")
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

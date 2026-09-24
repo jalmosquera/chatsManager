@@ -1,15 +1,15 @@
 # 🌐 Google - Comandos Esenciales
 
 ## 📁 Comandos Generales
-```bash
-ctrl + t                        # abrir nueva pestagna
-ctrl + w                        # cerrar ventana
-Cmd + Q                         # cerrar ventana
+```tsv
+ctrl + t	ctrl + t	abrir nueva pestagna
+ctrl + w	ctrl + w	cerrar ventana
+Cmd + Q	Cmd + Q	cerrar ventana
 ```
 
 ## ❓ Ayuda y Documentación
-```bash
-alt + comand + i                # activa herramientas del desarrollador
+```tsv
+alt + comand + i	alt + comand + i	activa herramientas del desarrollador
 ```
 
 ---

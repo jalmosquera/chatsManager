@@ -5,6 +5,9 @@ import re
 import subprocess
 from datetime import datetime
 
+from cheatsheet_format import format_entry, parse_entry
+from runtime_paths import cheatsheets_dir as installed_cheatsheets_dir
+
 def get_emoji_for_category(command_text):
     """Determina el emoji apropiado basado en el contenido del comando"""
     command_lower = command_text.lower()
@@ -219,24 +222,27 @@ def add_commands_interactively(existing_sections):
 
     print("\n📝 Vamos a agregar comandos de forma interactiva")
     print("=" * 50)
-    print("💡 Estructura: comando → descripción (se piden por separado)")
-    print("   Ejemplo: git status → Muestra el estado del repositorio")
-    print("   Atajos: se conserva exactamente el texto que escribís.")
+    print("💡 Cada registro pide nombre, comando y descripción por separado.")
 
     while True:
         print("\n" + "─" * 50)
 
-        # Preguntar por el comando
-        command = input("\n💻 Dime el comando: ").strip()
+        name = input("\n📛 Nombre: ").strip()
+        if not name:
+            print("❌ El nombre no puede estar vacío")
+            continue
+
+        command = input("💻 Comando: ").strip()
         if not command:
             print("❌ El comando no puede estar vacío")
             continue
 
         # Preguntar por la descripción
-        description = input("📝 Dime la descripción: ").strip()
+        description = input("📝 Descripción: ").strip()
 
         # Crear info del comando
         cmd_info = {
+            'name': name,
             'command': command,
             'description': description,
             'category': None
@@ -246,7 +252,7 @@ def add_commands_interactively(existing_sections):
         cmd_info = select_category_for_command(cmd_info, existing_sections)
         commands.append(cmd_info)
 
-        print(f"\n✅ Comando agregado: {command}")
+        print(f"\n✅ Agregado: {name} → {command}")
 
         # Preguntar si quiere agregar más
         add_more = input("\n➕ ¿Agregar otro comando? (s/n): ").strip().lower()
@@ -277,20 +283,17 @@ def parse_existing_cheatsheet(content):
             current_commands = []
             
         # Detectar bloques de código
-        elif line_stripped == '```bash' or line_stripped == '```':
+        elif line_stripped.startswith('```'):
             in_code_block = not in_code_block
             
         # Extraer comandos del bloque de código
         elif in_code_block and line_stripped and not line_stripped.startswith('```'):
-            # Parsear comando con comentario
-            if '  # ' in line:
-                parts = line.split('  # ', 1)
-                command = parts[0].strip()
-                description = parts[1].strip()
-                current_commands.append({'command': command, 'description': description})
-            else:
-                command = line.strip()
-                current_commands.append({'command': command, 'description': ''})
+            entry = parse_entry(line)
+            current_commands.append({
+                'name': entry.name,
+                'command': entry.command,
+                'description': entry.description,
+            })
     
     # Guardar la última sección
     if current_section:
@@ -347,22 +350,10 @@ def generate_updated_markdown(tool_name, sections, original_header):
             section_title = f"## {section_name}"
             
         markdown += f"{section_title}\n"
-        markdown += "```bash\n"
+        markdown += "```tsv\n"
         
         for cmd_info in cmd_list:
-            if cmd_info['description']:
-                command_part = cmd_info['command']
-                comment_part = f"  # {cmd_info['description']}"
-                
-                if len(command_part) < 30:
-                    spaces_needed = 30 - len(command_part)
-                    command_line = command_part + ' ' * spaces_needed + comment_part
-                else:
-                    command_line = command_part + comment_part
-                    
-                markdown += f"{command_line}\n"
-            else:
-                markdown += f"{cmd_info['command']}\n"
+            markdown += f"{format_entry(cmd_info['name'], cmd_info['command'], cmd_info['description'])}\n"
         
         markdown += "```\n\n"
     
@@ -376,16 +367,13 @@ def main():
     if len(sys.argv) < 2:
         print("Uso: python3 add_to_cheat.py <nombre_herramienta>")
         print("Agrega comandos a un cheatsheet existente")
-        print("\nFormato de comandos:")
-        print("comando - descripción")
-        print("otro_comando # otra descripción")
-        print("comando_sin_descripción")
+        print("Cada registro solicita nombre, comando y descripción")
         sys.exit(1)
     
     tool_name = sys.argv[1]
-    cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
+    cheatsheets_dir = installed_cheatsheets_dir()
     filename = f"{tool_name.lower().replace(' ', '_').replace('-', '_')}.md"
-    filepath = os.path.join(cheatsheets_dir, filename)
+    filepath = cheatsheets_dir / filename
     
     # Verificar que el archivo existe
     if not os.path.exists(filepath):
@@ -434,7 +422,7 @@ def main():
         # Si estamos agregando aliases, sincronizar con fish
         if tool_name.lower() == 'aliases':
             print(f"\n🔄 Sincronizando aliases con fish...")
-            sync_script = os.path.join(cheatsheets_dir, "sync_aliases.py")
+            sync_script = cheatsheets_dir / "sync_aliases.py"
             os.system(f'python3 "{sync_script}"')
 
         # Mostrar el archivo en la terminal
@@ -443,6 +431,8 @@ def main():
             [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), filepath],
             check=False,
         )
+        print(f"\n✓ Resumen: {tool_name} recibió {len(new_commands)} comandos; ahora tiene {total_commands} en total.")
+        input("Presioná Enter para volver al hub...")
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

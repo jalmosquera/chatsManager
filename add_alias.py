@@ -5,6 +5,9 @@ import re
 import subprocess
 from datetime import datetime
 
+from cheatsheet_format import format_entry
+from runtime_paths import cheatsheets_dir as installed_cheatsheets_dir, fish_aliases_file
+
 def parse_alias_input(input_text):
     """Parsea el input de alias en formato: nombre='comando' - descripción"""
     aliases = []
@@ -52,7 +55,8 @@ def add_to_fish_config(aliases, fish_config_path):
     # Preparar los nuevos aliases
     new_aliases_lines = []
     for alias in aliases:
-        alias_line = f"alias {alias['name']}='{alias['command']}'"
+        escaped_command = alias['command'].replace("'", "\\'")
+        alias_line = f"alias {alias['name']}='{escaped_command}'"
         if alias['description']:
             alias_line += f"  # {alias['description']}"
         new_aliases_lines.append(alias_line)
@@ -83,14 +87,29 @@ def add_to_fish_config(aliases, fish_config_path):
     return True
 
 def format_for_cheatsheet(aliases):
-    """Formatea los aliases para el cheatsheet markdown"""
-    lines = []
-    for alias in aliases:
-        if alias['description']:
-            lines.append(f"{alias['name']} - {alias['description']}")
-        else:
-            lines.append(f"{alias['name']} - {alias['command']}")
-    return '\n'.join(lines)
+    """Format aliases for the shared three-column cheatsheet table."""
+    return '\n'.join(
+        format_entry(alias['name'], alias['command'], alias['description'])
+        for alias in aliases
+    )
+
+
+def add_to_aliases_cheatsheet(content, aliases):
+    """Add aliases inside a dedicated tabular section before the footer."""
+    section_title = "## 📋 Alias personalizados"
+    entries = format_for_cheatsheet(aliases)
+    section_pattern = rf"({re.escape(section_title)}\n```tsv\n)(.*?)(\n```)"
+    match = re.search(section_pattern, content, re.DOTALL)
+    if match:
+        existing = match.group(2).rstrip()
+        combined = "\n".join(part for part in (existing, entries) if part)
+        return content[:match.start(2)] + combined + content[match.end(2):]
+
+    footer_index = content.find("\n---")
+    section = f"\n\n{section_title}\n```tsv\n{entries}\n```\n"
+    if footer_index == -1:
+        return content.rstrip() + section
+    return content[:footer_index] + section + content[footer_index:]
 
 def add_aliases_interactively():
     """Agrega aliases de forma interactiva pregunta por pregunta"""
@@ -98,27 +117,26 @@ def add_aliases_interactively():
 
     print("\n🔧 Agregar Alias Vivo")
     print("=" * 50)
-    print("💡 Estructura final: alias='comando'  # descripción")
-    print("   Ejemplo: gs='git status'  # Muestra el estado del repositorio")
-    print("   Los tres datos se piden por separado a continuación.")
+    print("💡 Cada alias se guarda como nombre, comando y descripción.")
+    print("   Ejemplo: gs | git status | Muestra el estado del repositorio")
 
     while True:
         print("\n" + "─" * 50)
 
         # Preguntar por el nombre del alias
-        alias_name = input("\n📛 Dime el alias: ").strip()
+        alias_name = input("\n📛 Nombre del alias: ").strip()
         if not alias_name:
             print("❌ El nombre del alias no puede estar vacío")
             continue
 
         # Preguntar por el comando
-        command = input("💻 Dime el comando: ").strip()
+        command = input("💻 Comando a ejecutar: ").strip()
         if not command:
             print("❌ El comando no puede estar vacío")
             continue
 
         # Preguntar por la descripción
-        description = input("📝 Dime la descripción: ").strip()
+        description = input("📝 Descripción: ").strip()
 
         # Crear info del alias
         alias_info = {
@@ -140,8 +158,8 @@ def add_aliases_interactively():
     return aliases
 
 def main():
-    cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
-    fish_config_path = os.path.expanduser("~/.config/fish/conf.d/aliases.fish")
+    cheatsheets_dir = installed_cheatsheets_dir()
+    fish_config_path = fish_aliases_file()
 
     try:
         # Agregar aliases de forma interactiva
@@ -169,48 +187,12 @@ def main():
                 f.write("# Aliases\n\n")
                 f.write(f"---\n*Creado: {datetime.now().strftime('%Y-%m-%d')}*\n")
 
-        # Leer archivo existente
         with open(aliases_md_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # Agregar aliases al archivo de forma simple (al final antes del footer)
-        lines = content.split('\n')
-
-        # Buscar el footer
-        footer_index = -1
-        for i in range(len(lines) - 1, -1, -1):
-            if lines[i].strip().startswith('---') or lines[i].strip().startswith('*Creado:') or lines[i].strip().startswith('*Actualizado:'):
-                footer_index = i
-                break
-
-        # Construir las nuevas líneas de aliases
-        new_lines = []
-        if footer_index == -1 or not any('```bash' in line for line in lines):
-            # Si no hay bloque de código, crear uno
-            new_lines.append("## 📋 Aliases Personalizados\n")
-            new_lines.append("```bash\n")
-
-        for alias in aliases:
-            alias_line = f"{alias['name']}"
-            if alias['description']:
-                alias_line += f" - {alias['description']}"
-            else:
-                alias_line += f" - {alias['command']}"
-            new_lines.append(alias_line + "\n")
-
-        if footer_index == -1 or not any('```bash' in line for line in lines):
-            new_lines.append("```\n\n")
-
-        # Insertar antes del footer o al final
-        if footer_index > 0:
-            lines = lines[:footer_index] + new_lines + lines[footer_index:]
-        else:
-            lines.extend(new_lines)
-            lines.append(f"---\n*Actualizado: {datetime.now().strftime('%Y-%m-%d')}*\n")
-
-        # Escribir archivo actualizado
+        updated_content = add_to_aliases_cheatsheet(content, aliases)
         with open(aliases_md_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(lines))
+            f.write(updated_content)
 
         print(f"✅ Aliases agregados al cheatsheet: {aliases_md_path}")
 
@@ -223,6 +205,8 @@ def main():
             [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), aliases_md_path],
             check=False,
         )
+        print(f"\n✓ Resumen: se agregaron {len(aliases)} alias(es).")
+        input("Presioná Enter para volver al hub...")
 
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

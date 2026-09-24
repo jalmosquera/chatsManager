@@ -25,64 +25,42 @@ Un sistema completo y elegante para crear, gestionar y consultar hojas de refere
 ## ✨ Características
 
 - 🎯 **Gestión Intuitiva**: Sistema de comandos simple y coherente con prefijo `cs`
-- 📝 **Renderizado Rich**: Cheatsheets Markdown renderizados como tablas coloreadas de comando y descripción
+- 📝 **Renderizado Rich**: Cheatsheets Markdown renderizados como tablas coloreadas de nombre, comando y descripción
+- ▦ **Banners Automáticos**: Cada cheatsheet genera un banner compacto desde su título al abrirse
 - 🔄 **Aliases Vivos**: Crea aliases que funcionan tanto como documentación como comandos reales en tu shell
 - 📁 **Organización por Categorías**: Selección interactiva de categorías al agregar comandos
 - ⌨️ **Preservación Literal**: Conserva exactamente las mayúsculas, símbolos y atajos que escribís
 - 🎨 **Emojis Inteligentes**: Asignación automática de emojis según el tipo de comando
-- 🔍 **Búsqueda Global**: `csfind` encuentra secciones, comandos y descripciones en todos los cheatsheets
-- 🧭 **Hub Interactivo**: `cs` ofrece acciones y cheatsheets con `fzf`, preview y búsqueda sin distinguir mayúsculas
+- 🔍 **Búsqueda Global**: `csfind` encuentra nombres, comandos y descripciones en todos los cheatsheets
+- 🧭 **Hub Interactivo**: `cs` muestra una tabla centrada para seleccionar por número, nombre o Tab
 - 🎯 **Íconos Semánticos**: Cada cheatsheet se identifica con un ícono acorde a su herramienta
 - 🔧 **Sincronización Automática**: Los aliases se sincronizan automáticamente con Fish shell
+- 🐧 **Instalación Portable**: Un instalador prepara macOS y Linux con las mismas dependencias y configuración
 
 ## 🔧 Requisitos
 
-- **Fish Shell**: El sistema está diseñado para funcionar con Fish shell
-- **Python 3**: Para los scripts de gestión
-- **rich-cli**: Para el renderizado de tablas y colores
-  ```bash
-  brew install rich-cli
-  ```
-- **fzf**: Para el hub interactivo y la búsqueda global
-  ```bash
-  brew install fzf
-  ```
-- **glow** (opcional): Para previsualizar un cheatsheet inmediatamente después de crearlo
-- **tree** (opcional): Para los aliases de visualización de directorios
+El instalador detecta e instala `fish`, `fzf`, `python3`, `less` y Rich. Soporta Homebrew en macOS y `apt`, `dnf`, `pacman` o `apk` en Linux. En macOS necesitás [Homebrew](https://brew.sh) previamente instalado; en Linux puede solicitar tu contraseña de `sudo`.
 
 ## 📦 Instalación
 
-1. **Clona el repositorio**:
-   ```bash
-   git clone https://github.com/jalmosquera/chatsManager.git ~/.cheatsheets
-   ```
+Cloná y ejecutá un solo comando:
 
-2. **Haz ejecutables los scripts**:
-   ```bash
-   chmod +x ~/.cheatsheets/cs*
-   chmod +x ~/.cheatsheets/*.py
-   ```
+```bash
+git clone https://github.com/jalmosquera/chatsManager.git ~/.cheatsheets && ~/.cheatsheets/install.sh
+```
 
-3. **Configura Fish shell**:
+El instalador crea un entorno virtual local en `~/.cheatsheets/.venv` e instala un snippet aislado en `~/.config/fish/conf.d/cheats_manager.fish`; no reemplaza tu `config.fish` ni tu archivo personal de aliases. Abrí una terminal Fish nueva o cargalo ahora:
 
-   Copia o fusiona el contenido del archivo de aliases con tu configuración de Fish:
-   ```bash
-   # Si no existe el directorio, créalo
-   mkdir -p ~/.config/fish/conf.d/
+```fish
+source ~/.config/fish/conf.d/cheats_manager.fish
+cs
+```
 
-   # Copia o fusiona los aliases
-   cp ~/.cheatsheets/fish_aliases_example.fish ~/.config/fish/conf.d/aliases.fish
-   ```
+Para ver las acciones sin modificar tu sistema:
 
-4. **Recarga Fish**:
-   ```bash
-   exec fish
-   ```
-
-5. **Verifica la instalación**:
-   ```bash
-   cs
-   ```
+```bash
+~/.cheatsheets/install.sh --dry-run
+```
 
 ## 📖 Uso
 
@@ -94,7 +72,7 @@ Para ver un cheatsheet existente:
 cs <nombre-herramienta>
 ```
 
-Si ejecutas `cs` sin argumentos, se abre un hub interactivo con acciones de gestión y cheatsheets. Podés escribir para filtrar, usar `Enter` para abrir y `Esc` para cancelar. Cada cheatsheet tiene un ícono semántico, por ejemplo `⚡ warp`, `🪟 tmux`, `⌨️ nvim`, `🐳 docker` y `🔀 git`.
+Si ejecutas `cs` sin argumentos, se abre un hub centrado con una tabla de acciones y cheatsheets. Escribí `/` para abrir la búsqueda, o su número o nombre y presioná `Enter`; `Tab` completa el nombre y `Esc` cancela. Las acciones CRUD muestran un breadcrumb y, al terminar correctamente, un resumen que se cierra con `Enter` para volver al hub. En el selector de destino de las acciones CRUD, `q` o `Esc` cancelan y regresan al hub. Al abrir un cheatsheet desde este menú, `q` regresa al hub. Cada cheatsheet tiene un ícono semántico, por ejemplo `⚡ warp`, `🪟 tmux`, `⌨️ nvim`, `🐳 docker` y `🔀 git`.
 
 **Ejemplos**:
 ```bash
@@ -105,13 +83,13 @@ cs nvim         # Ver cheatsheet de nvim
 
 ### Buscar Comandos Globalmente
 
-Busca por nombre de cheatsheet, sección, comando o descripción, sin distinguir mayúsculas de minúsculas:
+Busca por nombre de cheatsheet, sección, nombre de registro, comando o descripción, sin distinguir mayúsculas de minúsculas:
 
 ```bash
 csfind
 ```
 
-El panel derecho muestra una previsualización. Una vez abierto el cheatsheet, usá `/` o `?` para buscar dentro del documento, `n`/`N` para recorrer coincidencias y `q` para salir.
+El panel derecho muestra una previsualización. Una vez abierto un `.md`, la misma búsqueda queda disponible dentro del documento: `/texto` o `?texto` busca, `n`/`N` recorre coincidencias y `q` vuelve al hub.
 
 ### Crear Nuevo Cheatsheet
 
@@ -121,19 +99,18 @@ Crea un nuevo cheatsheet desde cero:
 csnew <nombre-herramienta>
 ```
 
-El sistema te pedirá:
-1. Ingresar los comandos (formato: `comando - descripción`)
-2. Presionar Ctrl+D cuando termines
-3. Automáticamente categorizará y creará el archivo
+El sistema te pedirá, para cada registro:
+1. Nombre
+2. Comando
+3. Descripción
+4. Automáticamente categorizará y creará el archivo
 
 **Ejemplo**:
 ```bash
 csnew kubectl
-# Luego ingresa:
-kubectl get pods - Lista todos los pods
-kubectl describe pod <nombre> - Muestra detalles de un pod
-kubectl logs <pod> - Muestra logs de un pod
-# Presiona Ctrl+D
+# Nombre: Listar pods
+# Comando: kubectl get pods
+# Descripción: Lista todos los pods
 ```
 
 ### Agregar Comandos
@@ -145,19 +122,17 @@ csadd <nombre-herramienta>
 ```
 
 **Flujo interactivo**:
-1. Ingresa los comandos (formato: `comando - descripción`)
-2. Presiona Ctrl+D cuando termines
-3. Selecciona la categoría para cada comando:
+1. Ingresa nombre, comando y descripción por separado
+2. Selecciona la categoría para cada comando:
    - Elige una categoría existente (por número)
    - O crea una nueva categoría (opción 0)
 
 **Ejemplo**:
 ```bash
 csadd git
-# Ingresa:
-git stash - Guarda cambios temporalmente
-git stash pop - Recupera cambios guardados
-# Presiona Ctrl+D
+# Nombre: Guardar cambios
+# Comando: git stash
+# Descripción: Guarda cambios temporalmente
 # Luego selecciona la categoría
 ```
 
@@ -169,13 +144,13 @@ Edita comandos existentes en un cheatsheet:
 csedit <nombre-herramienta>
 ```
 
-El sistema mostrará todos los comandos numerados. Selecciona el que quieres editar y modifica el comando y/o descripción.
+El sistema mostrará todos los registros numerados. Selecciona el que quieres editar y modifica el nombre, comando y/o descripción.
 
 **Ejemplo**:
 ```bash
 csedit docker
 # Selecciona el número del comando a editar
-# Modifica el comando y descripción
+# Modifica nombre, comando y descripción
 # Confirma los cambios
 ```
 
@@ -197,18 +172,14 @@ Los **aliases vivos** son alias que funcionan tanto como documentación en el ch
 csalias
 ```
 
-**Formato de entrada**:
-```
-nombre='comando' - descripción
-```
+El flujo pide nombre del alias, comando a ejecutar y descripción en campos separados.
 
 **Ejemplo**:
 ```bash
 csalias
-# Ingresa:
-ll='ls -lah' - Lista detallada con archivos ocultos
-gst='git status' - Estado de git
-# Presiona Ctrl+D
+# Nombre del alias: ll
+# Comando a ejecutar: ls -lah
+# Descripción: Lista detallada con archivos ocultos
 ```
 
 Los aliases se agregarán automáticamente:
@@ -230,6 +201,9 @@ cshelp
 ├── README.md                    # Documentación en español (principal)
 ├── README_EN.md                 # Documentación en inglés
 ├── fish_aliases_example.fish   # Funciones Fish: cs, csfind y el hub interactivo
+├── install.sh                  # Instalador para macOS y Linux
+├── requirements.txt            # Dependencia Python de Rich
+├── runtime_paths.py            # Rutas portables de instalación
 ├── csnew                       # Crear nuevo cheatsheet
 ├── csadd                       # Agregar comandos
 ├── csedit                      # Editar comandos
@@ -289,7 +263,7 @@ Cuando editas el cheatsheet de aliases con `csedit aliases` o `csadd aliases`, e
 ### Visualización Elegante
 
 Todos los cheatsheets se visualizan con Rich, que proporciona:
-- Columnas separadas para comando y descripción
+- Columnas separadas para nombre, comando y descripción
 - Colores sincronizados con el tema activo de Tmux, con Tokyo Night como fallback
 - Tablas centradas con bordes y separadores por fila
 - Pager compatible con `/`, `?`, `n`, `N` y `q`
@@ -302,13 +276,9 @@ Todos los cheatsheets se visualizan con Rich, que proporciona:
 # Crear el cheatsheet
 csnew docker
 
-# Ingresar comandos
-docker ps - Lista contenedores en ejecución
-docker images - Lista imágenes disponibles
-docker run <imagen> - Ejecuta un contenedor
-docker stop <id> - Detiene un contenedor
-docker rm <id> - Elimina un contenedor
-# Presiona Ctrl+D
+# Nombre: Listar contenedores
+# Comando: docker ps
+# Descripción: Lista contenedores en ejecución
 
 # Ver el resultado
 cs docker
@@ -320,10 +290,9 @@ cs docker
 # Agregar comandos
 csadd git
 
-# Ingresar nuevos comandos
-git cherry-pick <commit> - Aplica un commit específico
-git rebase -i HEAD~3 - Rebase interactivo últimos 3 commits
-# Presiona Ctrl+D
+# Nombre: Aplicar commit
+# Comando: git cherry-pick <commit>
+# Descripción: Aplica un commit específico
 
 # Seleccionar categoría
 # 1. Comandos Básicos (15 comandos)
@@ -339,12 +308,9 @@ git rebase -i HEAD~3 - Rebase interactivo últimos 3 commits
 # Agregar aliases que funcionan inmediatamente
 csalias
 
-# Ingresar aliases
-gco='git checkout' - Cambiar de rama
-gpl='git pull' - Actualizar rama
-gps='git push' - Subir cambios
-dc='docker-compose' - Docker compose corto
-# Presiona Ctrl+D
+# Nombre del alias: gco
+# Comando a ejecutar: git checkout
+# Descripción: Cambiar de rama
 
 # Los aliases ya funcionan:
 gco main          # Cambia a rama main

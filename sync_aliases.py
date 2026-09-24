@@ -6,8 +6,11 @@ import sys
 import os
 import re
 
+from cheatsheet_format import parse_entry
+from runtime_paths import cheatsheets_dir as installed_cheatsheets_dir, fish_aliases_file
+
 def parse_aliases_from_cheatsheet(cheatsheet_path):
-    """Extrae todos los aliases del cheatsheet"""
+    """Extract aliases only from the dedicated custom-alias section."""
     aliases = []
 
     if not os.path.exists(cheatsheet_path):
@@ -16,38 +19,29 @@ def parse_aliases_from_cheatsheet(cheatsheet_path):
     with open(cheatsheet_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Buscar bloques de código bash
     in_code_block = False
+    in_alias_section = False
     for line in content.split('\n'):
         line_stripped = line.strip()
 
-        if line_stripped == '```bash' or line_stripped == '```':
+        if line_stripped.startswith('## '):
+            in_alias_section = line_stripped == '## 📋 Alias personalizados'
+            continue
+
+        if not in_alias_section:
+            continue
+
+        if line_stripped.startswith('```'):
             in_code_block = not in_code_block
             continue
 
         if in_code_block and line_stripped:
-            # Parsear línea: nombre - descripción  o  comando  # descripción
-            if ' - ' in line_stripped:
-                parts = line_stripped.split(' - ', 1)
-                alias_name = parts[0].strip()
-                description = parts[1].strip() if len(parts) > 1 else ''
-            elif '  # ' in line_stripped:
-                parts = line_stripped.split('  # ', 1)
-                alias_name = parts[0].strip()
-                description = parts[1].strip() if len(parts) > 1 else ''
-            else:
-                alias_name = line_stripped
-                description = ''
-
-            # Inferir el comando desde la descripción o el nombre
-            # Formato esperado: l4 - Árbol nivel 4
-            # El comando real sería: tree -L 4
-
-            # Para ahora, solo guardamos lo que tenemos
-            if alias_name and not alias_name.startswith('#'):
+            entry = parse_entry(line)
+            if entry.name and not entry.name.startswith('#'):
                 aliases.append({
-                    'name': alias_name,
-                    'description': description
+                    'name': entry.name,
+                    'command': entry.command,
+                    'description': entry.description,
                 })
 
     return aliases
@@ -104,15 +98,7 @@ def sync_aliases_to_fish(cheatsheet_path, fish_config_path):
         name = alias_info['name']
 
         if name not in fish_aliases:
-            # Intentar inferir el comando
-            command = infer_alias_command(name, alias_info['description'])
-
-            if command:
-                missing_aliases.append({
-                    'name': name,
-                    'command': command,
-                    'description': alias_info['description']
-                })
+            missing_aliases.append(alias_info)
 
     if not missing_aliases:
         print("✅ Todos los aliases están sincronizados")
@@ -174,9 +160,9 @@ def sync_aliases_to_fish(cheatsheet_path, fish_config_path):
     return True
 
 def main():
-    cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
-    fish_config_path = os.path.expanduser("~/.config/fish/conf.d/aliases.fish")
-    cheatsheet_path = os.path.join(cheatsheets_dir, "aliases.md")
+    cheatsheets_dir = installed_cheatsheets_dir()
+    fish_config_path = fish_aliases_file()
+    cheatsheet_path = cheatsheets_dir / "aliases.md"
 
     try:
         success = sync_aliases_to_fish(cheatsheet_path, fish_config_path)

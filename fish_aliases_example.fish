@@ -1,11 +1,42 @@
 # Cheatsheet Management System Configuration for Fish
+if not set -q CS_CHEATS_DIR
+    set -gx CS_CHEATS_DIR (path dirname (status filename))
+end
+if not set -q CS_FISH_ALIASES_FILE
+    set -gx CS_FISH_ALIASES_FILE "$HOME/.config/fish/conf.d/cheats_manager_aliases.fish"
+end
 
-alias csnew='~/.cheatsheets/csnew'
-alias csadd='~/.cheatsheets/csadd'
-alias csedit='~/.cheatsheets/csedit'
-alias csdel='~/.cheatsheets/csdel'
-alias cshelp='~/.cheatsheets/cshelp'
-alias csalias='~/.cheatsheets/csalias'
+if test -f "$CS_FISH_ALIASES_FILE"
+    source "$CS_FISH_ALIASES_FILE"
+end
+
+function csnew
+    "$CS_CHEATS_DIR/csnew" $argv
+end
+
+function csadd
+    "$CS_CHEATS_DIR/csadd" $argv
+end
+
+function csedit
+    "$CS_CHEATS_DIR/csedit" $argv
+end
+
+function csdel
+    "$CS_CHEATS_DIR/csdel" $argv
+end
+
+function cshelp
+    "$CS_CHEATS_DIR/cshelp" $argv
+end
+
+function csalias
+    "$CS_CHEATS_DIR/csalias" $argv
+end
+
+function rtmux
+    source "$CS_CHEATS_DIR/fish_aliases_example.fish"
+end
 
 function __cs_cheatsheet_icon
     switch (string lower -- $argv[1])
@@ -29,8 +60,8 @@ function __cs_cheatsheet_icon
 end
 
 function csfind
-    set cheat_dir "$HOME/.cheatsheets"
-    set rich_python (brew --prefix rich-cli)/libexec/bin/python
+    set cheat_dir "$CS_CHEATS_DIR"
+    set rich_python "$cheat_dir/.venv/bin/python"
     set field_separator (printf '\t')
 
     set selected (
@@ -39,25 +70,39 @@ function csfind
                 --disabled \
                 --ignore-case \
                 --delimiter="$field_separator" \
-                --with-nth=2,4 \
-                --prompt='⌕ commands> ' \
-                --header='Buscá por sección, comando o descripción · Enter abre · Esc cancela' \
+                --with-nth=2,4,5,6 \
+                --height=70% \
+                --layout=reverse \
+                --style='full:rounded' \
+                --margin='8%,12%' \
+                --padding='1,2' \
+                --border-label='  CHEATS SEARCH  ' \
+                --input-label='  Buscar  ' \
+                --list-label='  Resultados  ' \
+                --preview-label='  Vista previa  ' \
+                --prompt='⌕  ' \
+                --header='Nombre · Comando · Descripción · Enter abre · Esc cancela' \
+                --info=inline-right \
+                --pointer='▶' \
+                --marker='✓' \
+                --scrollbar='│' \
+                --color='bg:#1a1b26,bg+:#292e42,fg:#a9b1d6,fg+:#c0caf5,hl:#bb9af7,hl+:#bb9af7,info:#7aa2f7,prompt:#7aa2f7,pointer:#bb9af7,marker:#9ece6a,spinner:#e0af68,header:#565f89,border:#7aa2f7,label:#bb9af7,separator:#292e42,scrollbar:#565f89,preview-bg:#16161e,preview-border:#565f89' \
                 --bind="start:reload:$rich_python $cheat_dir/index_cheatsheets.py $cheat_dir --query {q}" \
                 --bind="change:reload:$rich_python $cheat_dir/index_cheatsheets.py $cheat_dir --query {q}" \
                 --preview="$rich_python $cheat_dir/render_cheatsheet.py --no-pager {1}" \
-                --preview-window='right:65%:wrap'
+                --preview-window='right:55%:wrap'
     )
 
     if test -n "$selected"
         set selected $selected[1]
         set file (string split \t -- $selected)[1]
-        $rich_python "$cheat_dir/render_cheatsheet.py" "$file"
+        $rich_python "$cheat_dir/render_cheatsheet.py" --no-pager "$file" | less -R
     end
 end
 
 function __cs_select_cheatsheet
-    set cheat_dir "$HOME/.cheatsheets"
-    set rich_python (brew --prefix rich-cli)/libexec/bin/python
+    set cheat_dir "$CS_CHEATS_DIR"
+    set rich_python "$cheat_dir/.venv/bin/python"
     set field_separator (printf '\t')
     set prompt $argv[1]
     set header $argv[2]
@@ -66,7 +111,7 @@ function __cs_select_cheatsheet
         set prompt '⌕ cheatsheets> '
     end
     if test -z "$header"
-        set header 'Seleccioná un cheatsheet · Enter confirma · Esc cancela'
+        set header 'Seleccioná un cheatsheet · Enter confirma · q/Esc cancela'
     end
 
     set selected (
@@ -84,6 +129,7 @@ function __cs_select_cheatsheet
                 --with-nth=3 \
                 --prompt="$prompt" \
                 --header="$header" \
+                --bind='q:abort' \
                 --preview="$rich_python $cheat_dir/render_cheatsheet.py --no-pager {1}" \
                 --preview-window='right:65%:wrap'
     )
@@ -95,72 +141,62 @@ function __cs_select_cheatsheet
 end
 
 function cs
-    set cheat_dir "$HOME/.cheatsheets"
-    set rich_python (brew --prefix rich-cli)/libexec/bin/python
-    set field_separator (printf '\t')
+    set cheat_dir "$CS_CHEATS_DIR"
+    set rich_python "$cheat_dir/.venv/bin/python"
 
     if test (count $argv) -eq 0
-        set selected (
-            begin
-                printf 'action\tnew\t✨ Crear cheatsheet nuevo\n'
-                printf 'action\tadd\t➕ Agregar comandos\n'
-                printf 'action\tedit\t✏️  Editar comandos\n'
-                printf 'action\tdelete\t🗑️  Eliminar comandos\n'
-                printf 'action\talias\t🔧 Agregar alias vivo\n'
-                printf 'action\tfind\t🔍 Buscar comando o descripción\n'
-                printf 'action\thelp\t❓ Ver ayuda\n'
-                for file in "$cheat_dir"/*.md
-                    set filename (string replace -r '^.*/' '' -- "$file")
-                    if string match -q 'README*.md' -- "$filename"
+        while true
+            set selected ($rich_python "$cheat_dir/cs_menu.py" "$cheat_dir")
+
+            if test -z "$selected"
+                return 0
+            end
+
+            set fields (string split \t -- $selected[1])
+            if test "$fields[1]" = cheat
+                $rich_python "$cheat_dir/render_cheatsheet.py" --no-pager "$fields[2]" | \
+                    less -R
+                continue
+            end
+
+            switch $fields[2]
+                case new
+                    printf '\n  cs > crear\n\n'
+                    read -P 'Nombre del cheatsheet: ' tool
+                    if string match -q -r '^[qQ]$' -- "$tool"
                         continue
                     end
-                    set tool (string replace -r '\.md$' '' -- "$filename")
-                    printf 'cheat\t%s\t%s %s\n' "$file" (__cs_cheatsheet_icon "$tool") "$tool"
-                end
-            end |
-                env SHELL=/bin/sh fzf \
-                    --ignore-case \
-                    --delimiter="$field_separator" \
-                    --with-nth=3 \
-                    --prompt='⌕ cheatsheets> ' \
-                    --header='Elegí una acción o cheatsheet · Enter ejecuta · Esc cancela' \
-                    --preview="if [ {1} = cheat ]; then $rich_python $cheat_dir/render_cheatsheet.py --no-pager {2}; else printf '%s\\n' {3}; fi" \
-                    --preview-window='right:65%:wrap'
-        )
-
-        if test -z "$selected"
-            return 0
-        end
-
-        set fields (string split \t -- $selected)
-        if test "$fields[1]" = cheat
-            $rich_python "$cheat_dir/render_cheatsheet.py" "$fields[2]"
-            return 0
-        end
-
-        switch $fields[2]
-            case new
-                read -P 'Nombre del cheatsheet: ' tool
-                if test -n "$tool"
-                    "$cheat_dir/csnew" "$tool"
-                end
-            case add edit delete
-                set tool (__cs_select_cheatsheet '⌕ destino> ' 'Seleccioná el cheatsheet a modificar')
-                if test -n "$tool"
-                    set script_action $fields[2]
-                    if test "$script_action" = delete
-                        set script_action del
+                    if test -n "$tool"
+                        "$cheat_dir/csnew" "$tool"
                     end
-                    "$cheat_dir/cs$script_action" "$tool"
-                end
-            case alias
-                "$cheat_dir/csalias"
-            case find
-                csfind
-            case help
-                "$cheat_dir/cshelp"
+                case add edit delete
+                    set tool (__cs_select_cheatsheet '⌕ destino> ' 'Seleccioná el cheatsheet a modificar')
+                    if test -n "$tool"
+                        set script_action $fields[2]
+                        if test "$script_action" = delete
+                            set script_action del
+                        end
+                        switch $fields[2]
+                            case add
+                                set action_label agregar
+                            case edit
+                                set action_label editar
+                            case delete
+                                set action_label eliminar
+                        end
+                        printf '\n  cs > %s > %s\n\n' "$action_label" "$tool"
+                        "$cheat_dir/cs$script_action" "$tool"
+                    end
+                case alias
+                    printf '\n  cs > alias\n\n'
+                    "$cheat_dir/csalias"
+                case find
+                    csfind
+                case help
+                    "$cheat_dir/cshelp"
+            end
+            continue
         end
-        return 0
     end
 
     set tool $argv[1]

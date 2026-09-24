@@ -16,12 +16,10 @@ if [ $# -eq 0 ]; then
     echo "  csnew terraform"
     echo "  cs 'aws cli'"
     echo ""
-    echo "Después de ejecutar el comando, ingresa los comandos en el formato:"
-    echo "  comando - descripción"
-    echo "  otro_comando # otra descripción"
-    echo "  comando_sin_descripción"
-    echo ""
-    echo "Presiona Ctrl+D cuando termines."
+echo "Después de ejecutar el comando, cada registro pide:"
+echo "  1. Nombre"
+echo "  2. Comando"
+echo "  3. Descripción"
     exit 1
 fi
 

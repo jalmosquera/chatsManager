@@ -5,6 +5,9 @@ import re
 import subprocess
 from datetime import datetime
 
+from cheatsheet_format import parse_entry
+from runtime_paths import cheatsheets_dir as installed_cheatsheets_dir
+
 def parse_existing_cheatsheet(content):
     """Parsea un cheatsheet existente y retorna comandos con sus ubicaciones"""
     lines = content.split('\n')
@@ -22,23 +25,17 @@ def parse_existing_cheatsheet(content):
             current_section = line_stripped[3:].strip()
             
         # Detectar bloques de código
-        elif line_stripped == '```bash' or line_stripped == '```':
+        elif line_stripped.startswith('```'):
             in_code_block = not in_code_block
             
         # Extraer comandos del bloque de código
         elif in_code_block and line_stripped and not line_stripped.startswith('```'):
-            # Parsear comando con comentario
-            if '  # ' in line:
-                parts = line.split('  # ', 1)
-                command = parts[0].strip()
-                description = parts[1].strip()
-            else:
-                command = line.strip()
-                description = ''
+            entry = parse_entry(line)
                 
             commands.append({
-                'command': command,
-                'description': description,
+                'name': entry.name,
+                'command': entry.command,
+                'description': entry.description,
                 'section': current_section,
                 'line_number': line_number,
                 'original_line': line
@@ -57,8 +54,7 @@ def display_commands(commands):
             print(f"\n🔸 {current_section}")
             print("-" * 50)
         
-        desc_text = f" - {cmd['description']}" if cmd['description'] else ""
-        print(f"{i:2d}. {cmd['command']}{desc_text}")
+        print(f"{i:2d}. {cmd['name']} | {cmd['command']} | {cmd['description']}")
     
     print()
 
@@ -131,9 +127,9 @@ def main():
         sys.exit(1)
     
     tool_name = sys.argv[1]
-    cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
+    cheatsheets_dir = installed_cheatsheets_dir()
     filename = f"{tool_name.lower().replace(' ', '_').replace('-', '_')}.md"
-    filepath = os.path.join(cheatsheets_dir, filename)
+    filepath = cheatsheets_dir / filename
     
     # Verificar que el archivo existe
     if not os.path.exists(filepath):
@@ -213,8 +209,7 @@ def main():
         print(f"\n🗑️  Comandos a eliminar:")
         for idx in sorted(valid_indices):
             cmd = commands[idx]
-            desc_text = f" - {cmd['description']}" if cmd['description'] else ""
-            print(f"  • {cmd['command']}{desc_text} (Sección: {cmd['section']})")
+            print(f"  • {cmd['name']} | {cmd['command']} | {cmd['description']} (Sección: {cmd['section']})")
         
         # Confirmación
         confirm = input(f"\n⚠️  ¿Confirmar eliminación de {len(valid_indices)} comando(s)? (y/n): ").strip().lower()
@@ -243,6 +238,8 @@ def main():
             [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), filepath],
             check=False,
         )
+        print(f"\n✓ Resumen: se eliminaron {len(valid_indices)} comando(s) de {tool_name}.")
+        input("Presioná Enter para volver al hub...")
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")

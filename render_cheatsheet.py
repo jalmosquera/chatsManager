@@ -7,6 +7,7 @@ import argparse
 import os
 import re
 import subprocess
+import unicodedata
 from contextlib import nullcontext
 from pathlib import Path
 
@@ -18,6 +19,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from cheatsheet_format import parse_entry
+
 
 TOKYO_NIGHT = {
     "command": "#7aa2f7",
@@ -25,6 +28,47 @@ TOKYO_NIGHT = {
     "border": "#292e42",
     "section": "#bb9af7",
     "title": "#c0caf5",
+}
+
+MINI_FONT = {
+    "A": (" ██ ", "█  █", "████", "█  █", "█  █"),
+    "B": ("███ ", "█  █", "███ ", "█  █", "███ "),
+    "C": (" ███", "█   ", "█   ", "█   ", " ███"),
+    "D": ("███ ", "█  █", "█  █", "█  █", "███ "),
+    "E": ("████", "█   ", "███ ", "█   ", "████"),
+    "F": ("████", "█   ", "███ ", "█   ", "█   "),
+    "G": (" ███", "█   ", "█ ██", "█  █", " ███"),
+    "H": ("█  █", "█  █", "████", "█  █", "█  █"),
+    "I": ("███", " █ ", " █ ", " █ ", "███"),
+    "J": ("  ██", "   █", "   █", "█  █", " ██ "),
+    "K": ("█  █", "█ █ ", "██  ", "█ █ ", "█  █"),
+    "L": ("█   ", "█   ", "█   ", "█   ", "████"),
+    "M": ("█   █", "██ ██", "█ █ █", "█   █", "█   █"),
+    "N": ("█  █", "██ █", "█ ██", "█  █", "█  █"),
+    "O": (" ██ ", "█  █", "█  █", "█  █", " ██ "),
+    "P": ("███ ", "█  █", "███ ", "█   ", "█   "),
+    "Q": (" ██ ", "█  █", "█  █", "█ ██", " ███"),
+    "R": ("███ ", "█  █", "███ ", "█ █ ", "█  █"),
+    "S": (" ███", "█   ", " ██ ", "   █", "███ "),
+    "T": ("█████", "  █  ", "  █  ", "  █  ", "  █  "),
+    "U": ("█  █", "█  █", "█  █", "█  █", " ██ "),
+    "V": ("█  █", "█  █", "█  █", " ██ ", " ██ "),
+    "W": ("█   █", "█   █", "█ █ █", "██ ██", "█   █"),
+    "X": ("█  █", " ██ ", " ██ ", " ██ ", "█  █"),
+    "Y": ("█   █", " █ █ ", "  █  ", "  █  ", "  █  "),
+    "Z": ("████", "  █ ", " ██ ", "█   ", "████"),
+    "0": (" ██ ", "█  █", "█  █", "█  █", " ██ "),
+    "1": (" ██", "█ █", "  █", "  █", "████"),
+    "2": ("███ ", "   █", " ██ ", "█   ", "████"),
+    "3": ("███ ", "   █", " ██ ", "   █", "███ "),
+    "4": ("█  █", "█  █", "████", "   █", "   █"),
+    "5": ("████", "█   ", "███ ", "   █", "███ "),
+    "6": (" ██ ", "█   ", "███ ", "█  █", " ██ "),
+    "7": ("████", "   █", "  █ ", " █  ", " █  "),
+    "8": (" ██ ", "█  █", " ██ ", "█  █", " ██ "),
+    "9": (" ██ ", "█  █", " ███", "   █", " ██ "),
+    "-": ("    ", "    ", "████", "    ", "    "),
+    " ": ("  ", "  ", "  ", "  ", "  "),
 }
 
 
@@ -54,26 +98,56 @@ def active_theme() -> dict[str, str]:
     return theme
 
 
+def banner_label(heading: str) -> str:
+    """Extract the tool name from a Markdown heading for a compact banner."""
+    without_icon = re.sub(r"^[^\w]+", "", heading).strip()
+    label = without_icon.split(" - ", maxsplit=1)[0]
+    return unicodedata.normalize("NFKD", label).encode("ascii", "ignore").decode().upper()
+
+
+def mini_banner(label: str) -> str:
+    """Render an embedded five-row block banner without an external dependency."""
+    characters = [MINI_FONT.get(character, MINI_FONT[" "]) for character in label]
+    return "\n".join(" ".join(character[row] for character in characters).rstrip() for row in range(5))
+
+
+def title_banner(heading: str, theme: dict[str, str], console: Console) -> None:
+    """Render a title-derived banner, falling back to the compact title when needed."""
+    label = banner_label(heading)
+    banner = mini_banner(label)
+    if label and max(len(line) for line in banner.splitlines()) <= console.width - 4:
+        console.print(Align.center(Text(banner, style=f"bold {theme['title']}")))
+        console.print(Align.center(Text(heading, style=theme["section"])))
+        return
+
+    console.print(
+        Align.center(
+            Panel(
+                Text(heading, style=f"bold {theme['title']}"),
+                border_style=theme["border"],
+                padding=(0, 1),
+                expand=False,
+            )
+        )
+    )
+
+
 def command_table(lines: list[str], theme: dict[str, str]) -> Table:
-    """Build a two-column table from Bash comments used as descriptions."""
-    has_descriptions = any("  # " in line for line in lines)
+    """Build a three-column table from cheatsheet command entries."""
     table = Table(
         box=box.ROUNDED,
         border_style=theme["border"],
         padding=(0, 1),
-        show_header=False,
+        header_style=f"bold {theme['section']}",
         show_lines=True,
     )
-    table.add_column(style=f"bold {theme['command']}", ratio=3)
-    if has_descriptions:
-        table.add_column(style=theme["description"], ratio=2)
+    table.add_column("Nombre", style=f"bold {theme['section']}", ratio=1)
+    table.add_column("Comando", style=f"bold {theme['command']}", ratio=2)
+    table.add_column("Descripción", style=theme["description"], ratio=2)
 
     for line in lines:
-        command, separator, description = line.partition("  # ")
-        if not separator or not has_descriptions:
-            table.add_row(line)
-            continue
-        table.add_row(command.rstrip(), description.strip())
+        entry = parse_entry(line)
+        table.add_row(entry.name, entry.command, entry.description)
 
     return table
 
@@ -121,16 +195,7 @@ def render(path: Path, use_pager: bool) -> None:
 
             if line.startswith("# "):
                 flush_prose()
-                console.print(
-                    Align.center(
-                        Panel(
-                            Text(line[2:], style=f"bold {theme['title']}"),
-                            border_style=theme["border"],
-                            padding=(0, 1),
-                            expand=False,
-                        )
-                    )
-                )
+                title_banner(line[2:], theme, console)
                 continue
 
             if line.startswith("## "):

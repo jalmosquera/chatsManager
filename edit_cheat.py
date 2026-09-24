@@ -5,6 +5,9 @@ import re
 import subprocess
 from datetime import datetime
 
+from cheatsheet_format import format_entry, parse_entry
+from runtime_paths import cheatsheets_dir as installed_cheatsheets_dir
+
 def parse_existing_cheatsheet(content):
     """Parsea un cheatsheet existente y retorna comandos con sus ubicaciones"""
     lines = content.split('\n')
@@ -22,23 +25,17 @@ def parse_existing_cheatsheet(content):
             current_section = line_stripped[3:].strip()
             
         # Detectar bloques de código
-        elif line_stripped == '```bash' or line_stripped == '```':
+        elif line_stripped.startswith('```'):
             in_code_block = not in_code_block
             
         # Extraer comandos del bloque de código
         elif in_code_block and line_stripped and not line_stripped.startswith('```'):
-            # Parsear comando con comentario
-            if '  # ' in line:
-                parts = line.split('  # ', 1)
-                command = parts[0].strip()
-                description = parts[1].strip()
-            else:
-                command = line.strip()
-                description = ''
+            entry = parse_entry(line)
                 
             commands.append({
-                'command': command,
-                'description': description,
+                'name': entry.name,
+                'command': entry.command,
+                'description': entry.description,
                 'section': current_section,
                 'line_number': line_number,
                 'original_line': line
@@ -57,8 +54,7 @@ def display_commands(commands):
             print(f"\n🔸 {current_section}")
             print("-" * 50)
         
-        desc_text = f" - {cmd['description']}" if cmd['description'] else ""
-        print(f"{i:2d}. {cmd['command']}{desc_text}")
+        print(f"{i:2d}. {cmd['name']} | {cmd['command']} | {cmd['description']}")
     
     print()
 
@@ -122,13 +118,17 @@ def edit_command_interactive(cmd_info):
     """Permite editar un comando de forma interactiva"""
     print(f"\n✏️  Editando comando:")
     print(f"Sección: {cmd_info['section']}")
+    print(f"Nombre actual: {cmd_info['name']}")
     print(f"Comando actual: {cmd_info['command']}")
     print(f"Descripción actual: {cmd_info['description'] or '(sin descripción)'}")
     print("💡 Escribí el nuevo valor o presioná Enter para conservar el actual.")
     print("   El comando conserva exactamente las mayúsculas y símbolos que escribís.")
     print()
     
-    # Editar comando
+    new_name = input(f"Nuevo nombre [{cmd_info['name']}]: ").strip()
+    if not new_name:
+        new_name = cmd_info['name']
+
     new_command = input(f"Nuevo comando [{cmd_info['command']}]: ").strip()
     if not new_command:
         new_command = cmd_info['command']
@@ -140,24 +140,15 @@ def edit_command_interactive(cmd_info):
         # Si el usuario presiona enter y había descripción, mantenerla
         new_description = current_desc
     
-    return new_command, new_description
+    return new_name, new_command, new_description
 
-def update_cheatsheet_content(original_content, commands, edited_index, new_command, new_description):
+def update_cheatsheet_content(original_content, commands, edited_index, new_name, new_command, new_description):
     """Actualiza el contenido del cheatsheet con el comando editado"""
     lines = original_content.split('\n')
     edited_cmd = commands[edited_index]
     line_to_edit = edited_cmd['line_number'] - 1  # -1 porque las líneas son 0-indexed
     
-    # Generar la nueva línea
-    if new_description:
-        # Mantener formato con alineación
-        if len(new_command) < 30:
-            spaces_needed = 30 - len(new_command)
-            new_line = new_command + ' ' * spaces_needed + f"  # {new_description}"
-        else:
-            new_line = new_command + f"  # {new_description}"
-    else:
-        new_line = new_command
+    new_line = format_entry(new_name, new_command, new_description)
     
     # Mantener la indentación original
     original_indent = len(edited_cmd['original_line']) - len(edited_cmd['original_line'].lstrip())
@@ -185,9 +176,9 @@ def main():
         sys.exit(1)
     
     tool_name = sys.argv[1]
-    cheatsheets_dir = os.path.expanduser("~/.cheatsheets")
+    cheatsheets_dir = installed_cheatsheets_dir()
     filename = f"{tool_name.lower().replace(' ', '_').replace('-', '_')}.md"
-    filepath = os.path.join(cheatsheets_dir, filename)
+    filepath = cheatsheets_dir / filename
     
     # Verificar que el archivo existe
     if not os.path.exists(filepath):
@@ -230,10 +221,11 @@ def main():
                 print("❌ Por favor ingresa un número válido o 'q' para salir")
         
         # Editar comando seleccionado
-        new_command, new_description = edit_command_interactive(commands[cmd_index])
+        new_name, new_command, new_description = edit_command_interactive(commands[cmd_index])
         
         # Confirmación
         print(f"\n📝 Cambios a realizar:")
+        print(f"Nombre: {commands[cmd_index]['name']} → {new_name}")
         print(f"Comando: {commands[cmd_index]['command']} → {new_command}")
         print(f"Descripción: {commands[cmd_index]['description'] or '(vacía)'} → {new_description or '(vacía)'}")
         
@@ -244,7 +236,7 @@ def main():
             sys.exit(0)
         
         # Actualizar contenido
-        updated_content = update_cheatsheet_content(content, commands, cmd_index, new_command, new_description)
+        updated_content = update_cheatsheet_content(content, commands, cmd_index, new_name, new_command, new_description)
         
         # Escribir archivo actualizado
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -255,7 +247,7 @@ def main():
         # Si estamos editando aliases, sincronizar con fish
         if tool_name.lower() == 'aliases':
             print(f"\n🔄 Sincronizando aliases con fish...")
-            sync_script = os.path.join(cheatsheets_dir, "sync_aliases.py")
+            sync_script = cheatsheets_dir / "sync_aliases.py"
             os.system(f'python3 "{sync_script}"')
 
         # Mostrar el archivo en la terminal
@@ -264,6 +256,8 @@ def main():
             [sys.executable, os.path.join(os.path.dirname(__file__), "show_cheatsheet.py"), filepath],
             check=False,
         )
+        print(f"\n✓ Resumen: se actualizó «{new_name}» en {tool_name}.")
+        input("Presioná Enter para volver al hub...")
         
     except KeyboardInterrupt:
         print("\n❌ Operación cancelada")
