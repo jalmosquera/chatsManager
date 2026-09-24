@@ -89,7 +89,7 @@ Search by cheatsheet name, section, entry name, command, or description without 
 csfind
 ```
 
-The right panel displays a preview. Once a `.md` cheatsheet is open, the same search remains available inside the document: `/text` or `?text` searches, `n`/`N` navigate matches, and `q` returns to the hub.
+The right panel displays a preview. Once a `.md` cheatsheet is open, press `/` to open the same Noice popup scoped to that cheatsheet; `Esc` returns to the viewer and `q` returns to the hub.
 
 ### Create New Cheatsheet
 
@@ -266,7 +266,7 @@ All cheatsheets are visualized with Rich, which provides:
 - Separate name, command, and description columns
 - Colors synchronized with the active Tmux theme, with Tokyo Night as fallback
 - Centered tables with borders and row separators
-- A pager compatible with `/`, `?`, `n`, `N`, and `q`
+- `/` opens scoped Noice search and `q` returns to the hub
 
 ## 💡 Usage Examples
 

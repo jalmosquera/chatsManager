@@ -89,7 +89,7 @@ Busca por nombre de cheatsheet, sección, nombre de registro, comando o descripc
 csfind
 ```
 
-El panel derecho muestra una previsualización. Una vez abierto un `.md`, la misma búsqueda queda disponible dentro del documento: `/texto` o `?texto` busca, `n`/`N` recorre coincidencias y `q` vuelve al hub.
+El panel derecho muestra una previsualización. Una vez abierto un `.md`, presioná `/` para abrir el mismo popup Noice, acotado a ese cheatsheet; `Esc` vuelve al visor y `q` vuelve al hub.
 
 ### Crear Nuevo Cheatsheet
 
@@ -266,7 +266,7 @@ Todos los cheatsheets se visualizan con Rich, que proporciona:
 - Columnas separadas para nombre, comando y descripción
 - Colores sincronizados con el tema activo de Tmux, con Tokyo Night como fallback
 - Tablas centradas con bordes y separadores por fila
-- Pager compatible con `/`, `?`, `n`, `N` y `q`
+- `/` abre búsqueda contextual Noice; `q` vuelve al hub
 
 ## 💡 Ejemplos de Uso
 

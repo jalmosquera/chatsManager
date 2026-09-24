@@ -59,13 +59,43 @@ function __cs_cheatsheet_icon
     end
 end
 
+function __cs_view
+    set cheat_dir "$CS_CHEATS_DIR"
+    set rich_python "$cheat_dir/.venv/bin/python"
+    set file $argv[1]
+
+    while true
+        $rich_python "$cheat_dir/render_cheatsheet.py" --no-pager "$file" | \
+            less -R --lesskey-src="$cheat_dir/cs.lesskey"
+        set viewer_status $pipestatus[2]
+
+        if test "$viewer_status" -eq 47
+            csfind "$file"
+            continue
+        end
+        return $viewer_status
+    end
+end
+
 function csfind
     set cheat_dir "$CS_CHEATS_DIR"
     set rich_python "$cheat_dir/.venv/bin/python"
     set field_separator (printf '\t')
+    set scope $argv[1]
+    set header 'Nombre · Comando · Descripción · Enter abre · Esc cancela'
+    set reload_command "$rich_python \"$cheat_dir/index_cheatsheets.py\" \"$cheat_dir\""
+
+    if test -n "$scope"
+        set header "Buscar en "(path basename "$scope")" · Nombre · Comando · Descripción · Enter abre · Esc cancela"
+        set reload_command "$reload_command --file \"$scope\""
+    end
 
     set selected (
-        $rich_python "$cheat_dir/index_cheatsheets.py" "$cheat_dir" --query '' |
+        if test -n "$scope"
+            $rich_python "$cheat_dir/index_cheatsheets.py" "$cheat_dir" --file "$scope" --query ''
+        else
+            $rich_python "$cheat_dir/index_cheatsheets.py" "$cheat_dir" --query ''
+        end |
             env SHELL=/bin/sh fzf \
                 --disabled \
                 --ignore-case \
@@ -81,14 +111,14 @@ function csfind
                 --list-label='  Resultados  ' \
                 --preview-label='  Vista previa  ' \
                 --prompt='⌕  ' \
-                --header='Nombre · Comando · Descripción · Enter abre · Esc cancela' \
+                --header="$header" \
                 --info=inline-right \
                 --pointer='▶' \
                 --marker='✓' \
                 --scrollbar='│' \
                 --color='bg:#1a1b26,bg+:#292e42,fg:#a9b1d6,fg+:#c0caf5,hl:#bb9af7,hl+:#bb9af7,info:#7aa2f7,prompt:#7aa2f7,pointer:#bb9af7,marker:#9ece6a,spinner:#e0af68,header:#565f89,border:#7aa2f7,label:#bb9af7,separator:#292e42,scrollbar:#565f89,preview-bg:#16161e,preview-border:#565f89' \
-                --bind="start:reload:$rich_python $cheat_dir/index_cheatsheets.py $cheat_dir --query {q}" \
-                --bind="change:reload:$rich_python $cheat_dir/index_cheatsheets.py $cheat_dir --query {q}" \
+                --bind="start:reload:$reload_command --query {q}" \
+                --bind="change:reload:$reload_command --query {q}" \
                 --preview="$rich_python $cheat_dir/render_cheatsheet.py --no-pager {1}" \
                 --preview-window='right:55%:wrap'
     )
@@ -96,7 +126,7 @@ function csfind
     if test -n "$selected"
         set selected $selected[1]
         set file (string split \t -- $selected)[1]
-        $rich_python "$cheat_dir/render_cheatsheet.py" --no-pager "$file" | less -R
+        __cs_view "$file"
     end
 end
 
@@ -154,8 +184,7 @@ function cs
 
             set fields (string split \t -- $selected[1])
             if test "$fields[1]" = cheat
-                $rich_python "$cheat_dir/render_cheatsheet.py" --no-pager "$fields[2]" | \
-                    less -R
+                __cs_view "$fields[2]"
                 continue
             end
 
@@ -203,7 +232,7 @@ function cs
     set file "$cheat_dir/$tool.md"
 
     if test -f "$file"
-        $rich_python "$cheat_dir/render_cheatsheet.py" "$file"
+        __cs_view "$file"
     else
         echo "❌ No encontré cheat sheet para '$tool'"
         echo "📝 Puedes crearlo con: csnew $tool"

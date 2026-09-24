@@ -57,10 +57,14 @@ def main() -> None:
         default="",
         help="Case-insensitive terms that must appear in a cheatsheet entry",
     )
+    parser.add_argument("--file", type=Path, help="Search only one cheatsheet Markdown file")
     args = parser.parse_args()
     terms = args.query.casefold().split()
 
-    for path in sorted(args.directory.glob("*.md")):
+    paths = [args.file] if args.file else sorted(args.directory.glob("*.md"))
+    for path in paths:
+        if not path.is_file():
+            parser.error(f"No existe el cheatsheet: {path}")
         if path.name.startswith("README"):
             continue
         for entry in index_file(path):
