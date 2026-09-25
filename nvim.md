@@ -136,5 +136,10 @@ Space + Space + ?	Space + Space + ?	Buscar ayuda
 Space + Space + K	Space + Space + K	Ver keymaps disponibles
 ```
 
+## 📁 mas usados
+```tsv
+greep text	g s a symbol	meter texto dentro de simbolos por ejemplo 'texto'
+```
+
 ---
-*Creado: 2025-10-15*
+*Actualizado: 2026-09-24*
