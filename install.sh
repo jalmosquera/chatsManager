@@ -54,6 +54,8 @@ if [[ ${#missing[@]} -gt 0 ]]; then
             if command -v apt-get >/dev/null 2>&1; then
                 as_root apt-get update
                 as_root apt-get install -y fish fzf python3 python3-venv less
+            elif command -v zypper >/dev/null 2>&1; then
+                as_root zypper --non-interactive install --no-recommends fish fzf python3 python3-venv less
             elif command -v dnf >/dev/null 2>&1; then
                 as_root dnf install -y fish fzf python3 less
             elif command -v pacman >/dev/null 2>&1; then

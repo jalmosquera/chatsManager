@@ -54,7 +54,6 @@ dkcbuild	docker compose build	-
 ## 📁 🖥️ Servidores y utilidades locales
 ```tsv
 cserver	cserver	ssh jserver
-commit	commit	/Users/jalberth/Documents/customUtils/customsGIT.bash $argv
 tmux	tmux	command tmux -2 $argv
 ```
 
