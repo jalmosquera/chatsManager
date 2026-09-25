@@ -81,12 +81,11 @@ fi
 run "$venv_python" -m pip install --upgrade pip
 run "$venv_python" -m pip install -r "$repo_dir/requirements.txt"
 
-fish_config_home="${XDG_CONFIG_HOME:-$HOME/.config}/fish"
-fish_conf_dir="$fish_config_home/conf.d"
-bootstrap_file="$fish_conf_dir/cheats_manager.fish"
-custom_aliases_file="$fish_conf_dir/cheats_manager_aliases.fish"
+fish_state_home="${XDG_STATE_HOME:-$HOME/.local/state}/chats-manager/fish"
+bootstrap_file="$fish_state_home/cheats_manager.fish"
+custom_aliases_file="$fish_state_home/cheats_manager_aliases.fish"
 
-run mkdir -p "$fish_conf_dir"
+run mkdir -p "$fish_state_home"
 if [[ ! -f "$custom_aliases_file" ]]; then
     if "$dry_run"; then
         printf '+ create %q\n' "$custom_aliases_file"
