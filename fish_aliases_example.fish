@@ -59,43 +59,15 @@ function __cs_cheatsheet_icon
     end
 end
 
-function __cs_view
-    set cheat_dir "$CS_CHEATS_DIR"
-    set rich_python "$cheat_dir/.venv/bin/python"
-    set file $argv[1]
-
-    while true
-        $rich_python "$cheat_dir/render_cheatsheet.py" --no-pager "$file" | \
-            less -R --lesskey-src="$cheat_dir/cs.lesskey"
-        set viewer_status $pipestatus[2]
-
-        if test "$viewer_status" -eq 47
-            csfind "$file"
-            continue
-        end
-        return $viewer_status
-    end
-end
-
 function csfind
     set cheat_dir "$CS_CHEATS_DIR"
     set rich_python "$cheat_dir/.venv/bin/python"
     set field_separator (printf '\t')
-    set scope $argv[1]
     set header 'Nombre · Comando · Descripción · Enter abre · Esc cancela'
     set reload_command "$rich_python \"$cheat_dir/index_cheatsheets.py\" \"$cheat_dir\""
 
-    if test -n "$scope"
-        set header "Buscar en "(path basename "$scope")" · Nombre · Comando · Descripción · Enter abre · Esc cancela"
-        set reload_command "$reload_command --file \"$scope\""
-    end
-
     set selected (
-        if test -n "$scope"
-            $rich_python "$cheat_dir/index_cheatsheets.py" "$cheat_dir" --file "$scope" --query ''
-        else
-            $rich_python "$cheat_dir/index_cheatsheets.py" "$cheat_dir" --query ''
-        end |
+        $rich_python "$cheat_dir/index_cheatsheets.py" "$cheat_dir" --query '' |
             env SHELL=/bin/sh fzf \
                 --disabled \
                 --ignore-case \
@@ -126,7 +98,7 @@ function csfind
     if test -n "$selected"
         set selected $selected[1]
         set file (string split \t -- $selected)[1]
-        __cs_view "$file"
+        $rich_python "$cheat_dir/render_cheatsheet.py" --no-pager "$file" | less -R
     end
 end
 
@@ -184,7 +156,7 @@ function cs
 
             set fields (string split \t -- $selected[1])
             if test "$fields[1]" = cheat
-                __cs_view "$fields[2]"
+                $rich_python "$cheat_dir/render_cheatsheet.py" --no-pager "$fields[2]" | less -R
                 continue
             end
 
@@ -232,7 +204,7 @@ function cs
     set file "$cheat_dir/$tool.md"
 
     if test -f "$file"
-        __cs_view "$file"
+        $rich_python "$cheat_dir/render_cheatsheet.py" "$file"
     else
         echo "❌ No encontré cheat sheet para '$tool'"
         echo "📝 Puedes crearlo con: csnew $tool"
